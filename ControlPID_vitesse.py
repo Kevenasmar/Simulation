@@ -128,7 +128,7 @@ for t in temps:
 # === Tracé des résultats ===
 plt.figure(figsize=(10, 6))
 plt.axhline(y=1.0, color='gray', linestyle='--', label='Consigne (1 rad/s)')
-plt.plot(temps, vit_bo, label="Boucle ouverte (1/K)", linestyle=":", linewidth=2)
+plt.plot(temps, vit_bo, label="Boucle ouverte (1/K)", linewidth=2)
 plt.plot(temps, vit_P, label="Contrôle P (Kp = 5.0)", linewidth=2)
 plt.plot(temps, vit_PI, label="Contrôle PI (Kp = 5.0, Ki = 10.0)", linewidth=2)
 plt.xlabel("Temps (s)")

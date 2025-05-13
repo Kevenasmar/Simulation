@@ -77,7 +77,7 @@ class MoteurCC:
 
 # Paramètres du moteur
 R = 1.0  # Ohms
-L = 0.001  # Henry
+L = 0.0  # Henry
 k_c = 0.01  # N.m/A
 k_e = 0.01  # V.s
 J = 0.01  # kg.m^2

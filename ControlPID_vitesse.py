@@ -31,7 +31,7 @@ class ControlPID_vitesse:
 
 def simulate_and_plot(K_P_values, K_I_values, K_D_values, title, param_type):
     R = 1.0
-    L = 0.001
+    L = 0.0
     k_c = 0.01
     k_e = 0.01
     J = 0.01

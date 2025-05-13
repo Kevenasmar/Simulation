@@ -5,6 +5,8 @@ import pygame
 from pygame.locals import *
 from types import MethodType
 from MoteurCC import MoteurCC
+import math
+
 
 class Univers(object):
     def __init__(self, name='ici', t0=0, step=0.1, dimensions=(100, 100), game=False, gameDimensions=(1024, 780), fps=60):
@@ -191,6 +193,37 @@ class Link(SpringDamper):
 
 
 
+class ForceMoteur(Force):
+    def __init__(self, moteur, particule, distance, active=True, name="force_moteur"):
+        super().__init__(V3D(), name, active)
+        self.moteur = moteur
+        self.particule = particule
+        self.distance = distance
+
+    def setForce(self, particule):
+        if self.active and particule == self.particule:
+            # Calculate the direction vector from the motor to the particle
+            dx = particule.getPosition().x - self.moteur.x
+            dy = particule.getPosition().y - self.moteur.y
+
+            # Calculate the angle for rotation
+            angle = math.atan2(dy, dx)
+            angle += 1  # Rotate by 1 radian per second
+
+            # Calculate the new position based on the rotation
+            new_x = self.moteur.x + self.distance * math.cos(angle)
+            new_y = self.moteur.y + self.distance * math.sin(angle)
+
+            # Calculate the force needed to move the particle to the new position
+            force_x = (new_x - particule.getPosition().x) * particule.mass
+            force_y = (new_y - particule.getPosition().y) * particule.mass
+
+            # Apply the force to the particle
+            particule.applyForce(V3D(force_x, force_y, 0))
+
+
+
+
 if __name__ == '__main__':
     from pylab import figure, show, legend
 
@@ -207,10 +240,9 @@ if __name__ == '__main__':
 
     # Create instances of Particule and MoteurCC
     P0 = Particule(p0=V3D(10,10,0))    
-    moteur = MoteurCC(R, L, k_c, k_e, J, f)
+    moteur = MoteurCC(R, L, k_c, k_e, J, f, V3D(50,50,0))
 
     # Set the positions of the particle and motor to the center of the screen
-    moteur.x, moteur.y = 50,40
 
     force = Gravity(V3D(0,-10))
     boing = Bounce_y(.9,monUnivers.step) 

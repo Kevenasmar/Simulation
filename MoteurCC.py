@@ -1,10 +1,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pygame
+from vector3D import Vector3D as v
 
 class MoteurCC:
-    def __init__(self, R, L, k_c, k_e, J, x=500, y=300):
-        # Caractéristiques physiques
+    def __init__(self, R, L, k_c, k_e, J, f, p=v()):
+        # Physical characteristics
         self.R = R
         self.L = L
         self.k_c = k_c
@@ -12,21 +13,21 @@ class MoteurCC:
         self.J = J
         self.f = f
 
-        # Entrées
+        # Inputs
         self.Um = 0
         self.load_inertia = 0
         self.external_torque = 0
         self.viscosity = 0
 
-        # Sorties
+        # Outputs
         self.i = 0
         self.Omega = 0
         self.Gamma = 0
         self.position = 0
 
-        # Coordonnées pour affichage
-        self.x = x
-        self.y = y
+        # Coordinates for display
+        self.x = p.x
+        self.y = p.y
 
     def __str__(self):
         return (f"MoteurCC(R={self.R}, L={self.L}, k_c={self.k_c}, k_e={self.k_e}, "
@@ -58,13 +59,13 @@ class MoteurCC:
 
     def getIntensity(self):
         return self.i
-    
+
     def applyForce(self, *args):
         for f in args:
             self.forces += f
 
     def simulate(self, step):
-        # Simplification avec L ≈ 0
+        # Simplification with L ≈ 0
         self.i = (self.Um - self.k_e * self.Omega) / self.R
         self.Gamma = self.k_c * self.i
         total_inertia = self.J + self.load_inertia
@@ -77,32 +78,29 @@ class MoteurCC:
         # Centre du moteur
         X = self.x * scale
         Y = self.y * scale
-        pygame.draw.circle(screen, (0, 0, 0), (X, Y), 20)
-
-        pygame.draw.circle(screen, (0, 0, 128), (X, Y), 40, width=2)
+        pygame.draw.circle(screen, (0, 0, 0), (int(X), int(Y)), 20)
+        pygame.draw.circle(screen, (0, 0, 128), (int(X), int(Y)), 40, width=2)
 
 def solution_analytique(time, Um, R, k_c, k_e, J, f):
     K = k_c / (k_e * k_c + R * f)
     tau = (R * J) / (k_e * k_c + R * f)
     return K * (1 - np.exp(-time / tau)) * Um
 
+# Motor parameters
+R = 1.0      # Armature resistance [Ohm]
+L = 0.001    # Armature inductance [H] ≈ 0
+k_c = 0.01   # Torque constant [Nm/A]
+k_e = 0.01   # Back EMF constant [V.s]
+J = 0.01     # Rotor inertia [kg.m²]
+f = 0.1      # Internal viscous friction [Nms]
+Um = 1.0     # Voltage across the motor [V]
 
+# External parameters (set to 0 if not needed)
+load_inertia = 0.005           # Load inertia [kg.m²]
+external_torque = 0.002        # Constant external torque [Nm]
+viscosity = 0.05               # Medium viscosity [Nms]
 
-# Paramètres moteurs
-R = 1.0      # résistance de l’induit [Ohm]
-L = 0.001    # inductance de l’induit [H] ≈ 0
-k_c = 0.01   # constante de couple [Nm/A]
-k_e = 0.01   # constante de fcem [V.s]
-J = 0.01     # inertie du rotor [kg.m²]
-f = 0.1      # frottement visqueux interne [Nms]
-Um = 1.0     # tension aux bornes du moteur [V]
-
-# Paramètres extérieurs (à mettre à 0 s'il le faut)
-load_inertia = 0.005           # inertie de charge [kg.m²]
-external_torque = 0.002        # couple extérieur constant [Nm]
-viscosity = 0.05               # viscosité du milieu [Nms]
-
-# Création du moteur
+# Create the motor
 moteur = MoteurCC(R, L, k_c, k_e, J, f)
 moteur.setLoadInertia(load_inertia)
 moteur.setExternalTorque(external_torque)
@@ -121,20 +119,18 @@ while t < 2:
     temps.append(t)
     vitesses_num.append(moteur.getSpeed())
 
-
-# Solution analytique
+# Analytical solution
 temps_array = np.array(temps)
 vitesses_theo = solution_analytique(temps_array, Um, R, k_c, k_e, J, f)
 
-# # Tracé des deux courbes
-# plt.figure(figsize=(10, 6))
-# plt.axhline(y=0.1, color='gray', linestyle='--', label='Consigne (0.1 rad/s)')
-# plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
-# plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
-# plt.xlabel('Temps (s)')
-# plt.ylabel('Vitesse Ω(t) [rad/s]')
-# plt.title('Comparaison : théorie vs simulation numérique avec enrichissement')
-# plt.grid(True)
-# plt.legend()
-# plt.show()
-    
+# Plotting
+plt.figure(figsize=(10, 6))
+plt.axhline(y=0.1, color='gray', linestyle='--', label='Consigne (0.1 rad/s)')
+plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
+plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
+plt.xlabel('Temps (s)')
+plt.ylabel('Vitesse Ω(t) [rad/s]')
+plt.title('Comparaison : théorie vs simulation numérique avec enrichissement')
+plt.grid(True)
+plt.legend()
+plt.show()

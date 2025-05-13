@@ -1,6 +1,6 @@
 from random import random,randint
 from vector3D import Vector3D as V3D
-from particule import Particule
+from Particule import Particule
 import pygame
 from pygame.locals import *
 from types import MethodType

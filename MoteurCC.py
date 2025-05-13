@@ -1,8 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import pygame
 
 class MoteurCC:
-    def __init__(self, R, L, k_c, k_e, J, f):
+    def __init__(self, R, L, k_c, k_e, J, x=300, y=300):
         # Caractéristiques physiques
         self.R = R
         self.L = L
@@ -23,9 +24,13 @@ class MoteurCC:
         self.Gamma = 0
         self.position = 0
 
+        # Coordonnées pour affichage
+        self.x = x
+        self.y = y
+
     def __str__(self):
         return (f"MoteurCC(R={self.R}, L={self.L}, k_c={self.k_c}, k_e={self.k_e}, "
-                f"J={self.J}, f={self.f})")
+                f"J={self.J}, f={self.f}, x={self.x}, y={self.y})")
 
     def __repr__(self):
         return self.__str__()
@@ -68,6 +73,23 @@ def solution_analytique(time, Um, R, k_c, k_e, J, f):
     K = k_c / (k_e * k_c + R * f)
     tau = (R * J) / (k_e * k_c + R * f)
     return K * (1 - np.exp(-time / tau)) * Um
+
+def gameDraw(self, surface):
+        # Centre du moteur
+        pygame.draw.circle(surface, (0, 0, 0), (self.x, self.y), 20)  # moteur = disque noir
+
+        # Cercle de rotation stylisé
+        pygame.draw.circle(surface, (0, 0, 128), (self.x, self.y), 40, width=2)
+
+        # Flèche de rotation (style)
+        angle = -np.pi / 4
+        arrow_length = 15
+        arrow_x = int(self.x + 40 * np.cos(angle))
+        arrow_y = int(self.y + 40 * np.sin(angle))
+        pygame.draw.line(surface, (128, 0, 128), (arrow_x, arrow_y),
+                         (arrow_x - 10, arrow_y - 5), 2)
+        pygame.draw.line(surface, (128, 0, 128), (arrow_x, arrow_y),
+                         (arrow_x - 10, arrow_y + 5), 2)
 
 # Paramètres moteurs
 R = 1.0      # résistance de l’induit [Ohm]

@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import pygame
 
 class MoteurCC:
-    def __init__(self, R, L, k_c, k_e, J, x=300, y=300):
+    def __init__(self, R, L, k_c, k_e, J, x=500, y=300):
         # Caractéristiques physiques
         self.R = R
         self.L = L
@@ -58,8 +58,12 @@ class MoteurCC:
 
     def getIntensity(self):
         return self.i
+    
+    def applyForce(self, *args):
+        for f in args:
+            self.forces += f
 
-    def simule(self, step):
+    def simulate(self, step):
         # Simplification avec L ≈ 0
         self.i = (self.Um - self.k_e * self.Omega) / self.R
         self.Gamma = self.k_c * self.i
@@ -69,27 +73,20 @@ class MoteurCC:
         self.Omega += dOmega_dt * step
         self.position += self.Omega * step
 
+    def gameDraw(self, scale, screen):
+        # Centre du moteur
+        X = self.x * scale
+        Y = self.y * scale
+        pygame.draw.circle(screen, (0, 0, 0), (X, Y), 20)
+
+        pygame.draw.circle(screen, (0, 0, 128), (X, Y), 40, width=2)
+
 def solution_analytique(time, Um, R, k_c, k_e, J, f):
     K = k_c / (k_e * k_c + R * f)
     tau = (R * J) / (k_e * k_c + R * f)
     return K * (1 - np.exp(-time / tau)) * Um
 
-def gameDraw(self, surface):
-        # Centre du moteur
-        pygame.draw.circle(surface, (0, 0, 0), (self.x, self.y), 20)  # moteur = disque noir
 
-        # Cercle de rotation stylisé
-        pygame.draw.circle(surface, (0, 0, 128), (self.x, self.y), 40, width=2)
-
-        # Flèche de rotation (style)
-        angle = -np.pi / 4
-        arrow_length = 15
-        arrow_x = int(self.x + 40 * np.cos(angle))
-        arrow_y = int(self.y + 40 * np.sin(angle))
-        pygame.draw.line(surface, (128, 0, 128), (arrow_x, arrow_y),
-                         (arrow_x - 10, arrow_y - 5), 2)
-        pygame.draw.line(surface, (128, 0, 128), (arrow_x, arrow_y),
-                         (arrow_x - 10, arrow_y + 5), 2)
 
 # Paramètres moteurs
 R = 1.0      # résistance de l’induit [Ohm]
@@ -120,7 +117,7 @@ vitesses_num = [moteur.getSpeed()]
 while t < 2:
     t += step
     moteur.setVoltage(Um)
-    moteur.simule(step)
+    moteur.simulate(step)
     temps.append(t)
     vitesses_num.append(moteur.getSpeed())
 
@@ -129,15 +126,15 @@ while t < 2:
 temps_array = np.array(temps)
 vitesses_theo = solution_analytique(temps_array, Um, R, k_c, k_e, J, f)
 
-# Tracé des deux courbes
-plt.figure(figsize=(10, 6))
-plt.axhline(y=0.1, color='gray', linestyle='--', label='Consigne (0.1 rad/s)')
-plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
-plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
-plt.xlabel('Temps (s)')
-plt.ylabel('Vitesse Ω(t) [rad/s]')
-plt.title('Comparaison : théorie vs simulation numérique avec enrichissement')
-plt.grid(True)
-plt.legend()
-plt.show()
+# # Tracé des deux courbes
+# plt.figure(figsize=(10, 6))
+# plt.axhline(y=0.1, color='gray', linestyle='--', label='Consigne (0.1 rad/s)')
+# plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
+# plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
+# plt.xlabel('Temps (s)')
+# plt.ylabel('Vitesse Ω(t) [rad/s]')
+# plt.title('Comparaison : théorie vs simulation numérique avec enrichissement')
+# plt.grid(True)
+# plt.legend()
+# plt.show()
     

@@ -2,7 +2,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from MoteurCC import MoteurCC
 
-
 class ControlPID_vitesse:
     def __init__(self, moteur, Kp, Ki, Kd):
         self.moteur = moteur
@@ -43,9 +42,6 @@ class ControlPID_vitesse:
              self.Ki * self.integral_error +
              self.Kd * derivative_error)
 
-        # Saturation éventuelle de la tension (ex : Vmax = 12V)
-        V = max(min(V, 12), -12)
-
         self.prev_error = error
 
         # Envoi de la tension et simulation du moteur
@@ -67,45 +63,60 @@ class ControlPID_vitesse:
         plt.legend()
         plt.show()
 
-# Paramètres moteur (valeurs de base)
-R = 1.0
-L = 0.0
-k_c = 0.01
-k_e = 0.01
-J = 0.01
-f = 0.1
+
+# Paramètres moteurs
+R = 1.0      # résistance de l’induit [Ohm]
+L = 0.001    # inductance de l’induit [H] ≈ 0
+k_c = 0.01   # constante de couple [Nm/A]
+k_e = 0.01   # constante de fcem [V.s]
+J = 0.01     # inertie du rotor [kg.m²]
+f = 0.1      # frottement visqueux interne [Nms]
+Um = 1.0     # tension aux bornes du moteur [V]
+
+# Paramètres extérieurs
+load_inertia = 0.005           # inertie de charge [kg.m²]
+external_torque = 0.002        # couple extérieur [Nm]
+viscosity = 0.05               # viscosité [N.m.s]
 
 # Constantes analytiques
 K = k_c / (k_c * k_e + R * f)
 
 # Simulation
 step = 0.01
-t_max = 2
+t_max = 10
 temps = np.arange(0, t_max + step, step)
 
-# Moteur en boucle ouverte (pour référence du gain)
+# === Boucle ouverte ===
 m_bo = MoteurCC(R, L, k_c, k_e, J, f)
+m_bo.setLoadInertia(load_inertia)
+m_bo.setExternalTorque(external_torque)
+m_bo.setViscosity(viscosity)
 
-# Moteur avec correcteur P
+# === Contrôle P ===
 m_P = MoteurCC(R, L, k_c, k_e, J, f)
-ctrl_P = ControlPID_vitesse(m_P, Kp=2.0, Ki=0.0, Kd=0.0)
+m_P.setLoadInertia(load_inertia)
+m_P.setExternalTorque(external_torque)
+m_P.setViscosity(viscosity)
+ctrl_P = ControlPID_vitesse(m_P, Kp=5.0, Ki=0.0, Kd=0.0)
 
-# Moteur avec correcteur PI
+# === Contrôle PI ===
 m_PI = MoteurCC(R, L, k_c, k_e, J, f)
-ctrl_PI = ControlPID_vitesse(m_PI, Kp=2.0, Ki=10.0, Kd=0.0)
+m_PI.setLoadInertia(load_inertia)
+m_PI.setExternalTorque(external_torque)
+m_PI.setViscosity(viscosity)
+ctrl_PI = ControlPID_vitesse(m_PI, Kp=5.0, Ki=10.0, Kd=0.0)
 
-# Traces des courbes
+# Stockage des vitesses
 vit_bo = []
 vit_P = []
 vit_PI = []
 
+# Boucle de simulation
 for t in temps:
-    # Boucle ouverte : tension constante pour atteindre 1 rad/s
-    m_bo.setVoltage(1 / K)
+    m_bo.setVoltage(1/K)
     m_bo.simule(step)
     vit_bo.append(m_bo.getSpeed())
 
-    # Boucle fermée : consigne de vitesse à 1 rad/s
     ctrl_P.setTarget(1)
     ctrl_P.simule(step)
     vit_P.append(m_P.getSpeed())
@@ -114,14 +125,15 @@ for t in temps:
     ctrl_PI.simule(step)
     vit_PI.append(m_PI.getSpeed())
 
-# Tracé des vitesses
+# === Tracé des résultats ===
 plt.figure(figsize=(10, 6))
+plt.axhline(y=1.0, color='gray', linestyle='--', label='Consigne (1 rad/s)')
 plt.plot(temps, vit_bo, label="Boucle ouverte (1/K)", linestyle=":", linewidth=2)
-plt.plot(temps, vit_P, label="Contrôle P = 2.0", linewidth=2)
-plt.plot(temps, vit_PI, label="Contrôle P = 2.0, I = 10.0", linewidth=2)
+plt.plot(temps, vit_P, label="Contrôle P (Kp = 5.0)", linewidth=2)
+plt.plot(temps, vit_PI, label="Contrôle PI (Kp = 5.0, Ki = 10.0)", linewidth=2)
 plt.xlabel("Temps (s)")
 plt.ylabel("Vitesse Ω(t) [rad/s]")
-plt.title("Comparaison : effet de $K_P$ et $K_I$ sur le contrôle de vitesse")
+plt.title("Comparaison : effets de $K_P$ et $K_I$ avec actions extérieures")
 plt.grid(True)
 plt.legend()
 plt.show()

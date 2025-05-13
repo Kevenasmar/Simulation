@@ -76,7 +76,7 @@ k_c = 0.01   # constante de couple [Nm/A]
 k_e = 0.01   # constante de fcem [V.s]
 J = 0.01     # inertie du rotor [kg.m²]
 f = 0.1      # frottement visqueux interne [Nms]
-Um = 1.0
+Um = 1.0     # tension aux bornes du moteur [V]
 
 # Paramètres extérieurs (à mettre à 0 s'il le faut)
 load_inertia = 0.005           # inertie de charge [kg.m²]
@@ -109,6 +109,7 @@ vitesses_theo = solution_analytique(temps_array, Um, R, k_c, k_e, J, f)
 
 # Tracé des deux courbes
 plt.figure(figsize=(10, 6))
+plt.axhline(y=0.1, color='gray', linestyle='--', label='Consigne (0.1 rad/s)')
 plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
 plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
 plt.xlabel('Temps (s)')

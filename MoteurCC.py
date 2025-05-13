@@ -4,25 +4,24 @@ import matplotlib.pyplot as plt
 class MoteurCC:
     def __init__(self, R, L, k_c, k_e, J, f):
         # Caractéristiques physiques
-
-        self.R = R  # Résistance 
-        self.L = L  # Inductance 
-        self.k_c = k_c  # Constante de couple
-        self.k_e = k_e  # Constante de force électromotrice
-        self.J = J  # Inertie du rotor
-        self.f = f  # Frottements visqueux
+        self.R = R
+        self.L = L
+        self.k_c = k_c
+        self.k_e = k_e
+        self.J = J
+        self.f = f
 
         # Entrées
-        self.Um = 0  # Tension d'entrée
-        self.load_inertia = 0  # Inertie de la charge ajoutée
-        self.external_torque = 0  # Couple extérieur résistif
-        self.viscosity = 0  # Viscosité du milieu
+        self.Um = 0
+        self.load_inertia = 0
+        self.external_torque = 0
+        self.viscosity = 0
 
         # Sorties
-        self.i = 0  # Courant
-        self.Omega = 0  # Vitesse du rotor
-        self.Gamma = 0  # Couple moteur
-        self.position = 0  # Position du rotor
+        self.i = 0
+        self.Omega = 0
+        self.Gamma = 0
+        self.position = 0
 
     def __str__(self):
         return (f"MoteurCC(R={self.R}, L={self.L}, k_c={self.k_c}, k_e={self.k_e}, "
@@ -59,46 +58,63 @@ class MoteurCC:
         # Simplification avec L ≈ 0
         self.i = (self.Um - self.k_e * self.Omega) / self.R
         self.Gamma = self.k_c * self.i
-
-        # Ajout des effets de la charge, du couple extérieur et de la viscosité
         total_inertia = self.J + self.load_inertia
         total_friction = self.f + self.viscosity
         dOmega_dt = (self.Gamma - self.external_torque - total_friction * self.Omega) / total_inertia
         self.Omega += dOmega_dt * step
         self.position += self.Omega * step
 
-    def plot(self, temps, vitesses):
-        plt.plot(temps, vitesses)
-        plt.xlabel('Temps (s)')
-        plt.ylabel('Vitesse (rad/s)')
-        plt.title('Réponse indicielle du moteur CC')
-        plt.grid(True)
-        plt.show()
+def solution_analytique(time, Um, R, k_c, k_e, J, f):
+    K = k_c / (k_e * k_c + R * f)
+    tau = (R * J) / (k_e * k_c + R * f)
+    return K * (1 - np.exp(-time / tau)) * Um
 
-# Paramètres du moteur
-R = 1.0  # Ohms
-L = 0.0  # Henry
-k_c = 0.01  # N.m/A
-k_e = 0.01  # V.s
-J = 0.01  # kg.m^2
-f = 0.1  # N.m.s
+# Paramètres moteurs
+R = 1.0      # résistance de l’induit [Ohm]
+L = 0.001    # inductance de l’induit [H] ≈ 0
+k_c = 0.01   # constante de couple [Nm/A]
+k_e = 0.01   # constante de fcem [V.s]
+J = 0.01     # inertie du rotor [kg.m²]
+f = 0.1      # frottement visqueux interne [Nms]
+Um = 1.0
+
+# Paramètres extérieurs (à mettre à 0 s'il le faut)
+load_inertia = 0.005           # inertie de charge [kg.m²]
+external_torque = 0.002        # couple extérieur constant [Nm]
+viscosity = 0.05               # viscosité du milieu [Nms]
 
 # Création du moteur
 moteur = MoteurCC(R, L, k_c, k_e, J, f)
+moteur.setLoadInertia(load_inertia)
+moteur.setExternalTorque(external_torque)
+moteur.setViscosity(viscosity)
 
 # Simulation
 t = 0
 step = 0.01
 temps = [t]
-vitesses = [moteur.getSpeed()]
+vitesses_num = [moteur.getSpeed()]
 
 while t < 2:
     t += step
-    moteur.setVoltage(1)  # Échelon unité de tension
+    moteur.setVoltage(Um)
     moteur.simule(step)
     temps.append(t)
-    vitesses.append(moteur.getSpeed())
+    vitesses_num.append(moteur.getSpeed())
 
-# Tracé de la réponse indicielle
-moteur.plot(temps, vitesses)
+
+# Solution analytique
+temps_array = np.array(temps)
+vitesses_theo = solution_analytique(temps_array, Um, R, k_c, k_e, J, f)
+
+# Tracé des deux courbes
+plt.figure(figsize=(10, 6))
+plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
+plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
+plt.xlabel('Temps (s)')
+plt.ylabel('Vitesse Ω(t) [rad/s]')
+plt.title('Comparaison : théorie vs simulation numérique avec enrichissement')
+plt.grid(True)
+plt.legend()
+plt.show()
     

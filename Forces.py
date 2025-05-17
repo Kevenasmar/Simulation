@@ -83,6 +83,37 @@ class Link(SpringDamper):
         SpringDamper.__init__(self,P0, P1,1000,100,l0,True,"link")
 
 
+class SpringDamperMoteur(Force):
+    def __init__(self, moteur, particule, k = 10, c = 1, name = "spring damper moteur"):
+        self.moteur = moteur 
+        self.particule  = particule
+        self.k = k 
+        self.c = c
+        self.name = name
+
+        self.l0 = (self.particule.getPosition() - self.moteur.p).mod()
+
+    def setForce(self,p):
+        if p != self.particule : 
+            return 
+        
+        pos_m = self.moteur.p
+        pos_p = p.getPosition()
+        vec_dir = pos_p - pos_m
+        unit = vec_dir.norm()
+        distance = vec_dir.mod()
+
+        v_r = self.particule.getSpeed()
+        v_n = v_r ** unit 
+
+        force = (-self.k * (distance - self.l0) - self.c * v_n) * unit
+        self.particule.applyForce(force)
+
+
+
+
+
+
 class ForceMoteur(Force):
     def __init__(self, moteur, particule, active=True, name="force_moteur"):
         super().__init__(V3D(), name, active)

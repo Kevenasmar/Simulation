@@ -150,12 +150,13 @@ if __name__ == '__main__':
     J = 0.01
     f = 0.1
     Um = 1.0
+    P = V3D(50, 50, 0)
 
     monUnivers = Univers(game=True)
 
     particule = Particule(p0=V3D(40, 50, 0))
-    moteur = MoteurCC(R, L, k_c, k_e, J, f, V3D(50, 50, 0))
-    moteur.setVoltage(100)
+    moteur = MoteurCC(R, L, k_c, k_e, J, f, P)
+    moteur.setVoltage(220)
 
     # Ajout des entités
     monUnivers.addEntity(particule)
@@ -166,10 +167,13 @@ if __name__ == '__main__':
     bounce_x = Bounce_x()
     bounce_y = Bounce_y()
     force_moteur = ForceMoteur(moteur, particule)
-    lien = Link(particule, moteur)  # Ajout du ressort rigide
+    force_ressort = SpringDamperMoteur(moteur, particule, k = 50, c = 1)
 
     # Ajout des forces à l’univers
-    monUnivers.addGenerators(gravity, bounce_x, bounce_y, force_moteur, lien)
+    monUnivers.addGenerators(force_moteur, force_ressort)
+
+    # Plot d(Ω)
+    
 
     # Simulation
     monUnivers.simulateRealTime()

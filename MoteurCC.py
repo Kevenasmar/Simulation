@@ -25,7 +25,8 @@ class MoteurCC:
         self.Gamma = 0
         self.position = 0
 
-        # Coordinates for display
+        # Coordinates for display*
+        self.p = p
         self.x = p.x
         self.y = p.y
 

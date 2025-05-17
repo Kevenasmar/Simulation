@@ -13,6 +13,8 @@ class Univers(object):
         self.name = name
         self.time = [t0]
         self.population = []
+        self.bars = []
+        self.motors = []
         self.generators = []
         self.step = step
 
@@ -32,7 +34,10 @@ class Univers(object):
 
     def addEntity(self, *members):
         for m in members:
-            self.population.append(m)
+            if isinstance(m, Particule):
+                self.population.append(m)
+            if isinstance(m,MoteurCC):
+                self.motors.append(m)
 
     def addGenerators(self, *members):
         for g in members:
@@ -94,6 +99,11 @@ class Univers(object):
                 if hasattr(t, 'gameDraw'):
                     t.gameDraw(self.scale, screen)
 
+            for t in self.motors:
+                if hasattr(t, 'gameDraw'):
+                    t.gameDraw(self.scale, screen)
+
+
             flip_surface = pygame.transform.flip(screen, False, True)
             screen.blit(flip_surface, (0, 0))
 
@@ -136,6 +146,7 @@ class Gravity(Force):
         if isinstance(entity,Particule):
             if self.active:
                 entity.applyForce(self.g*entity.mass)
+
 
     
 class Bounce_y(Force):
@@ -222,8 +233,6 @@ class ForceMoteur(Force):
             particule.applyForce(V3D(force_x, force_y, 0))
 
 
-
-
 if __name__ == '__main__':
     from pylab import figure, show, legend
 
@@ -235,27 +244,25 @@ if __name__ == '__main__':
     f = 0.1
     Um = 1.0
 
-    # Create an instance of Univers with game mode enabled
-    monUnivers = Univers(game=True, gameDimensions=(1024, 780))
+    monUnivers = Univers(game=True)
 
-    # Create instances of Particule and MoteurCC
-    P0 = Particule(p0=V3D(10,10,0))    
+    particule = Particule(p0=V3D(40,50,0))
     moteur = MoteurCC(R, L, k_c, k_e, J, f, V3D(50,50,0))
 
-    # Set the positions of the particle and motor to the center of the screen
-
-    force = Gravity(V3D(0,-10))
-    boing = Bounce_y(.9,monUnivers.step) 
-    boing2 = Bounce_x(1,monUnivers.step) 
-
     # Add the particle and motor to the universe
-    monUnivers.addEntity(P0)
+    monUnivers.addEntity(particule)
     monUnivers.addEntity(moteur)
 
-    monUnivers.addGenerators(force, boing, boing2)
+    # Add some forces
+    gravity = Gravity()
+    bounce_y = Bounce_y()
+    monUnivers.addGenerators(gravity, bounce_y)
 
-    # Simulate the universe in real-time
+    # Add ForceMoteur for the particle
+    distance = 50  # Set the distance between the motor and the particle
+    # force_moteur = ForceMoteur(moteur, particule, distance)
+    # monUnivers.addGenerators(force_moteur)
+
     monUnivers.simulateRealTime()
 
-    # Plot the results
     monUnivers.plot()

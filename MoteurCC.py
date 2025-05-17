@@ -123,14 +123,17 @@ while t < 2:
 temps_array = np.array(temps)
 vitesses_theo = solution_analytique(temps_array, Um, R, k_c, k_e, J, f)
 
-# Plotting
-plt.figure(figsize=(10, 6))
-plt.axhline(y=0.1, color='gray', linestyle='--', label='Consigne (0.1 rad/s)')
-plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
-plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
-plt.xlabel('Temps (s)')
-plt.ylabel('Vitesse Ω(t) [rad/s]')
-plt.title('Comparaison : théorie vs simulation numérique avec enrichissement')
-plt.grid(True)
-plt.legend()
-plt.show()
+# Decommenter la suite quand vous executer ce code, sinon recomenter pour eviter de revoir cette fenetre a chaque autre executuion 
+
+
+# # Plotting
+# plt.figure(figsize=(10, 6))
+# plt.axhline(y=0.1, color='gray', linestyle='--', label='Consigne (0.1 rad/s)')
+# plt.plot(temps_array, vitesses_theo, label='Solution analytique', linewidth=2)
+# plt.plot(temps_array, vitesses_num, '--', label='Simulation numérique')
+# plt.xlabel('Temps (s)')
+# plt.ylabel('Vitesse Ω(t) [rad/s]')
+# plt.title('Comparaison : théorie vs simulation numérique avec enrichissement')
+# plt.grid(True)
+# plt.legend()
+# plt.show()

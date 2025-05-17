@@ -46,7 +46,7 @@ class ControlPID_vitesse:
 
         # Envoi de la tension et simulation du moteur
         self.moteur.setVoltage(V)
-        self.moteur.simule(step)
+        self.moteur.simulate(step)
 
         # Enregistrement pour le tracé
         self.voltages.append(V)
@@ -114,7 +114,7 @@ vit_PI = []
 # Boucle de simulation
 for t in temps:
     m_bo.setVoltage(1/K)
-    m_bo.simule(step)
+    m_bo.simulate(step)
     vit_bo.append(m_bo.getSpeed())
 
     ctrl_P.setTarget(1)

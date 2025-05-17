@@ -10,7 +10,7 @@ import math
 
 
 class Univers(object):
-    def __init__(self, name='ici', t0=0, step=0.1, dimensions=(100, 100), game=False, gameDimensions=(1024, 780), fps=60):
+    def __init__(self, name='ici', t0=0, step=0.01, dimensions=(100, 100), game=False, gameDimensions=(1024, 780), fps=60):
         self.name = name
         self.time = [t0]
         self.population = []
@@ -51,7 +51,7 @@ class Univers(object):
                 source.setForce(p)
             p.simulate(self.step)
 
-        for m in self.moteurs : 
+        for m in self.motors : 
             m.simulate(self.step)
         
         self.time.append(self.time[-1]+self.step)
@@ -153,23 +153,26 @@ if __name__ == '__main__':
 
     monUnivers = Univers(game=True)
 
-    particule = Particule(p0=V3D(40,50,0))
-    moteur = MoteurCC(R, L, k_c, k_e, J, f, V3D(50,50,0))
+    particule = Particule(p0=V3D(40, 50, 0))
+    moteur = MoteurCC(R, L, k_c, k_e, J, f, V3D(50, 50, 0))
+    moteur.setVoltage(100)
 
-    # Add the particle and motor to the universe
+    # Ajout des entités
     monUnivers.addEntity(particule)
     monUnivers.addEntity(moteur)
 
-    # Add some forces
+    # Générateurs de forces
     gravity = Gravity()
     bounce_x = Bounce_x()
     bounce_y = Bounce_y()
-    force_moteur = ForceMoteur(moteur = moteur, particule=particule)
-    
-    monUnivers.addGenerators(bounce_x, bounce_y, force_moteur)
+    force_moteur = ForceMoteur(moteur, particule)
+    lien = Link(particule, moteur)  # Ajout du ressort rigide
 
+    # Ajout des forces à l’univers
+    monUnivers.addGenerators(gravity, bounce_x, bounce_y, force_moteur, lien)
+
+    # Simulation
     monUnivers.simulateRealTime()
-
     monUnivers.plot()
 
     

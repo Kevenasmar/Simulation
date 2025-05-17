@@ -83,7 +83,6 @@ class Link(SpringDamper):
         SpringDamper.__init__(self,P0, P1,1000,100,l0,True,"link")
 
 
-
 class ForceMoteur(Force):
     def __init__(self, moteur, particule, active=True, name="force_moteur"):
         super().__init__(V3D(), name, active)
@@ -91,21 +90,14 @@ class ForceMoteur(Force):
         self.particule = particule
 
     def setForce(self, particule):
-        if not self.active or particule != self.particule:
+        if not self.active:
             return
-
-        # Calcul du vecteur depuis le moteur vers la particule
-        moteur_pos = V3D(self.moteur.x, self.moteur.y, 0)
-        d = self.particule.getPosition() - moteur_pos
-
-        if d.mod() == 0:
-            return  # éviter une division par zéro
-
-        # Tangente (rotation +90° dans le plan)
-        tangent = V3D(-d.y, d.x, 0).norm()
-
-        # Force proportionnelle au couple moteur
-        force_strength = self.moteur.getTorque()
-        force = force_strength * tangent
-
-        self.particule.applyForce(force)
+        if particule == self.particule:
+            vecteur = particule.getPosition() - V3D(self.moteur.x, self.moteur.y, 0)
+            rayon = vecteur.mod()
+            if rayon == 0:
+                return  
+            tangente = V3D(-vecteur.y, vecteur.x, 0).norm()
+            torque = self.moteur.getTorque()
+            force_moteur = (torque / rayon) * tangente
+            particule.applyForce(force_moteur)

@@ -45,12 +45,16 @@ class Univers(object):
 
     def simulateAll(self):
         for p in self.population:
-            # Seules les entités ayant une méthode applyForce (i.e. les particules) reçoivent les forces
             if hasattr(p, 'applyForce'):
                 for source in self.generators:
-                    source.setForce(p)
+                    if isinstance(source, ForceMoteur):
+                        for m in self.motors:
+                            source.setForce(m, p)
+                    else:
+                        source.setForce(p)
             p.simulate(self.step)
         self.time.append(self.time[-1] + self.step)
+
 
     def simulateFor(self, duration):
         while duration > 0:
@@ -219,32 +223,32 @@ class Link(SpringDamper):
 
 
 class ForceMoteur(Force):
-    def __init__(self, moteur, particule, distance, active=True, name="force_moteur"):
+    def __init__(self, moteur, particule, active=True, name="force_moteur"):
         super().__init__(V3D(), name, active)
         self.moteur = moteur
         self.particule = particule
-        self.distance = distance
 
     def setForce(self, particule):
-        if self.active and particule == self.particule:
-            # Calculate the direction vector from the motor to the particle
-            dx = particule.getPosition().x - self.moteur.x
-            dy = particule.getPosition().y - self.moteur.y
+        if not self.active or particule != self.particule:
+            return
 
-            # Calculate the angle for rotation
-            angle = math.atan2(dy, dx)
-            angle += 1  # Rotate by 1 radian per second
+        # Calcul du vecteur depuis le moteur vers la particule
+        moteur_pos = V3D(self.moteur.x, self.moteur.y, 0)
+        d = self.particule.getPosition() - moteur_pos
 
-            # Calculate the new position based on the rotation
-            new_x = self.moteur.x + self.distance * math.cos(angle)
-            new_y = self.moteur.y + self.distance * math.sin(angle)
+        if d.mod() == 0:
+            return  # éviter une division par zéro
 
-            # Calculate the force needed to move the particle to the new position
-            force_x = (new_x - particule.getPosition().x) * particule.mass
-            force_y = (new_y - particule.getPosition().y) * particule.mass
+        # Tangente (rotation +90° dans le plan)
+        tangent = V3D(-d.y, d.x, 0).norm()
 
-            # Apply the force to the particle
-            particule.applyForce(V3D(force_x, force_y, 0))
+        # Force proportionnelle au couple moteur
+        force_strength = self.moteur.getTorque()
+        force = force_strength * tangent
+
+        self.particule.applyForce(force)
+
+
 
 
 if __name__ == '__main__':
@@ -271,13 +275,9 @@ if __name__ == '__main__':
     gravity = Gravity()
     bounce_x = Bounce_x()
     bounce_y = Bounce_y()
+    force_moteur = ForceMoteur(moteur = moteur, particule=particule)
     
-    monUnivers.addGenerators(bounce_x, bounce_y)
-
-    # Add ForceMoteur for the particle
-    distance = 50  # Set the distance between the motor and the particle
-    # force_moteur = ForceMoteur(moteur, particule, distance)
-    # monUnivers.addGenerators(force_moteur)
+    monUnivers.addGenerators(bounce_x, bounce_y, force_moteur)
 
     monUnivers.simulateRealTime()
 

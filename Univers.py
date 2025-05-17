@@ -95,6 +95,20 @@ class Univers(object):
             self.gameInteraction(events, keys)
             self.simulateFor(1 / self.gameFPS)
 
+             # === DRAW GRID ===
+            grid_color = (200, 200, 200)  # light gray
+            grid_spacing = 10  # 10 units in simulation space
+            pixel_spacing = int(grid_spacing * self.scale)
+
+            # Vertical lines
+            for x in range(0, W, pixel_spacing):
+                pygame.draw.line(screen, grid_color, (x, 0), (x, H), 1)
+
+            # Horizontal lines
+            for y in range(0, H, pixel_spacing):
+                pygame.draw.line(screen, grid_color, (0, y), (W, y), 1)
+
+            # === DRAW OBJECTS ===
             for t in self.population:
                 if hasattr(t, 'gameDraw'):
                     t.gameDraw(self.scale, screen)
@@ -103,10 +117,11 @@ class Univers(object):
                 if hasattr(t, 'gameDraw'):
                     t.gameDraw(self.scale, screen)
 
-
+            # Flip vertically if needed
             flip_surface = pygame.transform.flip(screen, False, True)
             screen.blit(flip_surface, (0, 0))
 
+            # Draw time
             font_obj = pygame.font.Font('freesansbold.ttf', 12)
             text_surface_obj = font_obj.render(('time: %.2f' % self.time[-1]), True, 'green', (240, 240, 240))
             text_rect_obj = text_surface_obj.get_rect()
@@ -117,6 +132,7 @@ class Univers(object):
             clock.tick(self.gameFPS)
 
         pygame.quit()
+
 
 
 class Force(object):
@@ -146,8 +162,6 @@ class Gravity(Force):
         if isinstance(entity,Particule):
             if self.active:
                 entity.applyForce(self.g*entity.mass)
-
-
     
 class Bounce_y(Force):
     def __init__(self,k=1,step=0.1,name="boing",active=True):
@@ -255,8 +269,10 @@ if __name__ == '__main__':
 
     # Add some forces
     gravity = Gravity()
+    bounce_x = Bounce_x()
     bounce_y = Bounce_y()
-    monUnivers.addGenerators(gravity, bounce_y)
+    
+    monUnivers.addGenerators(bounce_x, bounce_y)
 
     # Add ForceMoteur for the particle
     distance = 50  # Set the distance between the motor and the particle

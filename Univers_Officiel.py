@@ -7,7 +7,7 @@ from types import MethodType
 from MoteurCC import MoteurCC
 from Forces import *
 import math
-
+from matplotlib import pyplot as plt
 
 class Univers(object):
     def __init__(self, name='ici', t0=0, step=0.01, dimensions=(100, 100), game=False, gameDimensions=(1024, 780), fps=60):
@@ -141,46 +141,64 @@ class Univers(object):
 
 
 if __name__ == '__main__':
-    from pylab import figure, show, legend
 
+    # Paramètres physiques du moteur
     R = 1.0
     L = 0.001
     k_c = 0.01
     k_e = 0.01
     J = 0.01
     f = 0.1
-    Um = 1.0
     P = V3D(50, 50, 0)
 
-    monUnivers = Univers(game=True)
+    # Liste des tensions à tester
+    tensions = list(range(20, 221, 20))
 
-    particule = Particule(p0=V3D(40, 50, 0))
-    moteur = MoteurCC(R, L, k_c, k_e, J, f, P)
-    moteur.setVoltage(220)
+    # Résultats
+    distances = []
+    omegas = []
 
-    # Ajout des entités
-    monUnivers.addEntity(particule)
-    monUnivers.addEntity(moteur)
+    # Boucle sur chaque tension
+    for U in tensions:
+        # Crée un nouvel univers pour chaque tension
+        monUnivers = Univers(game=False)
 
-    # Générateurs de forces
-    gravity = Gravity()
-    bounce_x = Bounce_x()
-    bounce_y = Bounce_y()
-    force_moteur = ForceMoteur(moteur, particule)
-    force_ressort = SpringDamperMoteur(moteur, particule, k = 50, c = 1)
+        # Crée une particule et un moteur
+        particule = Particule(p0=V3D(40, 50, 0))
+        moteur = MoteurCC(R, L, k_c, k_e, J, f, p=P)
+        moteur.setVoltage(U)
 
-    # Ajout des forces à l’univers
-    monUnivers.addGenerators(force_moteur, force_ressort)
+        # Ajoute les entités
+        monUnivers.addEntity(particule)
+        monUnivers.addEntity(moteur)
 
-    # Plot d(Ω)
-    
+        # Ajoute les forces
+        force_moteur = ForceMoteur(moteur, particule)
+        force_ressort = SpringDamperMoteur(moteur, particule, k=50, c=1)
+        monUnivers.addGenerators(force_moteur, force_ressort)
 
-    # Simulation
-    monUnivers.simulateRealTime()
-    monUnivers.plot()
+        # Simule pendant 10 secondes
+        monUnivers.simulateFor(60)
 
-    
+        # Calcule la distance entre le moteur et la particule à la fin
+        distance = (particule.getPosition() - moteur.p).mod()
+        distances.append(distance)
+
+        # Stocke la vitesse de rotation finale du moteur
+        omegas.append(moteur.getSpeed())
+
+    # Affiche le graphe : distance en fonction de la vitesse de rotation
+    plt.figure()
+    plt.plot(omegas, distances, 'o-', color='blue')
+    plt.xlabel("Vitesse de rotation Ω (rad/s)")
+    plt.ylabel("Distance finale d (unités)")
+    plt.title("Distance vs Vitesse de rotation")
+    plt.grid(True)
+    plt.show()
+
+
+        
 
 
 
-    
+        

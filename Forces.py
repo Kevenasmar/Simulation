@@ -138,38 +138,49 @@ class ForceMoteur(Force):
 
 
 class Pivot(Force):
-    def __init__(self, barre, point_fix=V3D(), point=0.0, k=1000, c=50, name="pivot", active=True):
+    def __init__(self, barre, point_fix, point=0.0, k=1000, c=50, name="pivot", active=True):
         super().__init__(V3D(), name=name, active=active)
         self.barre = barre
-        self.point_fix = point_fix  # position fixe dans le repère monde
-        self.point = point          # position normalisée sur la barre [-1, 1]
+        self.point_fix = point_fix  # Doit être une Particule
+        self.point = point          # Position normalisée sur la barre [-1, 1]
         self.k = k
         self.c = c
+
+        # Initialisation de la distance à l'équilibre (l0)
+        theta0 = self.barre.getAngle()
+        dir_barre = V3D(np.cos(theta0), np.sin(theta0), 0)
+        P0 = self.barre.getPosition() + (self.point * self.barre.L / 2) * dir_barre
+        self.l0 = (self.point_fix.getPosition() - P0).mod()  # distance initiale
 
     def setForce(self, obj):
         if not self.active or obj != self.barre:
             return
 
-        # Position du centre de masse et angle actuel
+        # Position actuelle du point d'attache
         pos = self.barre.getPosition()
         theta = self.barre.getAngle()
-
-        # Vecteur direction de la barre
         dir_barre = V3D(np.cos(theta), np.sin(theta), 0)
-
-        # Position du point d'attache sur la barre dans le repère monde
         P = pos + (self.point * self.barre.L / 2) * dir_barre
 
-        # Vitesse du point : translation + rotation (omega × r)
+        # Vecteur distance vers la particule fixe
+        delta = self.point_fix.getPosition() - P
+        d = delta.mod()
+        if d == 0:
+            return  # Évite division par 0
+
+        n = delta.norm()  # direction normalisée
+
+        # Vitesse du point
         r = (self.point * self.barre.L / 2) * dir_barre
         omega = self.barre.getAngularSpeed()
         v_translation = self.barre.getSpeed()
         v_rotation = V3D(-omega * r.y, omega * r.x, 0)
         v_point = v_translation + v_rotation
 
-        # Force de rappel (ressort + amortisseur)
-        f = self.k * (self.point_fix.getPosition() - P) - self.c * v_point
+        # Vitesse projetée sur l'axe du ressort
+        v_proj = v_point ** n
 
+        # Force de rappel + amortissement
+        force = self.k * (d - self.l0) * n - self.c * v_proj * n
 
-        # Application de la force sur la barre au point normalisé
-        self.barre.applyForce(f, self.point)
+        self.barre.applyForce(force, self.point)

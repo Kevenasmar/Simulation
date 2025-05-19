@@ -255,3 +255,22 @@ class SpringDamperBarre(Force):
             self.B0.applyForce(force, self.p0)
         elif entity == self.B1:
             self.B1.applyForce(-force, self.p1)
+
+class ForceSelectBarre(Force):
+    def __init__(self, force=V3D(), barre=None, point=0.0, name='force_select_barre', active=True):
+        super().__init__(force, name, active)
+        self.barre = barre
+        self.point = point
+        self.justActivated = False  # permet de l'activer pour un seul pas
+
+    def setForce(self, entity):
+        if self.active and entity == self.barre:
+            self.barre.applyForce(self.force, self.point)
+            self.justActivated = True  # on note qu’elle a été utilisée
+
+    def postStep(self):
+        # Si elle vient d’être utilisée, on la désactive immédiatement
+        if self.justActivated:
+            self.active = False
+            self.justActivated = False
+

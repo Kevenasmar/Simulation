@@ -1,9 +1,9 @@
 import pygame
 import numpy as np
-from Classes.MoteurCC import MoteurCC
-from Classes.vector3D import Vector3D as V3D
-from Classes.Forces import *
-from Classes.ControlPID_position import ControlPID_position
+from MoteurCC import MoteurCC
+from vector3D import Vector3D as V3D
+from Forces import *
+from ControlPID_position import ControlPID_position
 
 
 if __name__ == "__main__":

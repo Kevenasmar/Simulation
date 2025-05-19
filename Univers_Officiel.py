@@ -64,17 +64,7 @@ class Univers(object):
             for source in self.generators:
                 source.setForce(b)
             b.simulate(self.step)
-
-        # if len(self.population) > 0 and len(self.barres) > 0:
-        #     pos_p = self.population[0].getPosition().y
-        #     pos_b = self.barres[0].pos.y
-        #     vel_p = self.population[0].getSpeed().y
-        #     vel_b = self.barres[0].vel.y
-        #     acc_p = self.population[0].acceleration[-1].y
-        #     acc_b = self.barres[0].acc.y
-        #     print(f"t={self.time[-1]:.2f} | P: y={pos_p:.3f} v={vel_p:.3f} a={acc_p:.3f} || B: y={pos_b:.3f} v={vel_b:.3f} a={acc_b:.3f}")
-
-        
+       
         self.time.append(self.time[-1]+self.step)
 
     def simulateFor(self,duration):

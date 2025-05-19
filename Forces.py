@@ -90,11 +90,6 @@ class Link(SpringDamper):
         self.P0 = P0
         self.P1 = P1
 
-    def getCurrentAngle(self):
-        vec = self.P1.getPosition() - self.P0.getPosition()
-        return np.arctan2(vec.y, vec.x)
-
-
 
 class SpringDamperMoteur(Force):
     def __init__(self, moteur, particule, k = 10, c = 1, name = "spring damper moteur"):

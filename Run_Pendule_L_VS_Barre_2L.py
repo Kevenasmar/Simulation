@@ -3,44 +3,59 @@ from Barre2D import Barre
 from vector3D import Vector3D as V3D
 from Forces import *
 import matplotlib.pyplot as plt
+from Particule import Particule
+from math import atan2, degrees
 
 
 if __name__ == "__main__":
-    theta2_tab = []
+    theta_p2p3 = []
+    theta_barre = []
+    time_tab = []
+ 
     U = Univers(game=True)
 
     # Particule fixe : centre de rotation
-    p1 = Particule(fix=True, p0 = V3D(30,30,0))
-    p2 = Particule(fix=True, p0 = V3D(60,30,0))
-    p3 = Particule(fix=False, p0 = V3D(65,30,0))
-    U.addEntity(p1)
-    U.addEntity(p2)
-    U.addEntity(p3)
+    C = Particule(fix=True, p0 = V3D(30,30,0))
+    A = Particule(fix=True, p0 = V3D(60,30,0))
+    B = Particule(fix=False, p0 = V3D(65,30,0))
+    U.addEntity(C)
+    U.addEntity(A)
+    U.addEntity(B)
     
     b1 = Barre(mass = 1, p0 = V3D(35,30,0),t0 = 0, long = 10)
     U.addEntity(b1)
 
     # Forces
     gravity = Gravity()
-    pivot = Pivot(b1,p1,-1,k=1000, c= 100)
-    link = Link(p2,p3)
+    pivot = Pivot(b1,C,-1,k=1000, c= 100)
+    link = Link(A,B)
     U.addGenerators(gravity, pivot, link)
 
     U.simulateRealTime()
 
-    theta2_tab = link.theta()
+    # Simulation manuelle pour enregistrer les angles
+    for _ in range(len(U.time)): # CHANGER LE TEMPS SI NECESSAIRE
+        U.simulateAll()
 
-    time = np.linspace(0, len(theta2_tab) * U.step, len(theta2_tab))
+        v1 = B.getPosition() - A.getPosition()
+        v2 = b1.getPosition() - C.getPosition()
+        theta1 = degrees(atan2(v1.x, v1.y))
+        theta2 = degrees(atan2(v2.x, v2.y))
+    
+    
+        theta_p2p3.append(theta1)
+        theta_barre.append(theta2)
+        time_tab.append(U.time[-1])
+
+
 
     plt.figure()
-    plt.plot(time, theta2_tab, label="Angle between p2 and p3")
-    plt.xlabel("Time (s)")
-    plt.ylabel("Angle (rad)")
-    plt.title("θ₂(t) between p2 and p3")
-    plt.grid()
+    plt.plot(time_tab, theta_p2p3, label="θ1(t) (AB)")
+    plt.plot(time_tab, theta_barre, label="θ2(t) (barre b1)")
+    plt.xlabel("Temps (s)")
+    plt.ylabel("Angle (°)")
+    plt.title("Angles θ1(t) et θ2(t)")
     plt.legend()
+    plt.grid()
     plt.show()
 
-        
-
-    # U.plot()

@@ -1,4 +1,5 @@
 from Particule import Particule
+from Barre2D import Barre
 from vector3D import Vector3D as V3D
 
 class Force(object):
@@ -27,8 +28,12 @@ class Gravity(Force):
     def setForce(self,entity):
         if isinstance(entity,Particule):
             if self.active:
-                entity.applyForce(self.g*entity.mass)
+                entity.applyForce(-self.g*entity.mass)
     
+        if isinstance(entity, Barre):
+            if self.active : 
+                entity.applyForce(-self.g*entity.mass,0.0)
+
 class Bounce_y(Force):
     def __init__(self,k=1,step=0.1,name="boing",active=True):
         self.name=name
@@ -110,10 +115,6 @@ class SpringDamperMoteur(Force):
         self.particule.applyForce(force)
 
 
-
-
-
-
 class ForceMoteur(Force):
     def __init__(self, moteur, particule, active=True, name="force_moteur"):
         super().__init__(V3D(), name, active)
@@ -132,3 +133,29 @@ class ForceMoteur(Force):
             torque = self.moteur.getTorque()
             force_moteur = (torque / rayon) * tangente
             particule.applyForce(force_moteur)
+
+
+
+# === LIAISON PIVOT (FIXE) ===
+class Pivot(Force):
+    def __init__(self, barre: Barre, point=-1, k=1000, c=100, name="pivot"):
+        super().__init__(V3D(), name, active=True)
+        self.barre = barre
+        self.point = point  
+        self.k = k
+        self.c = c
+        self.ref_pos = self.get_anchor()
+
+    def get_anchor(self):
+        return self.point
+
+    def setForce(self, entity):
+        if entity != self.barre:
+            return
+
+        P = self.get_anchor()
+        V = self.barre.vel 
+        error = self.ref_pos - P
+        correction = self.k * error - self.c * V
+        self.barre.applyForce(correction, point=self.point)
+  

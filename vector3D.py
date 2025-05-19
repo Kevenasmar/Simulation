@@ -94,6 +94,10 @@ class Vector3D():
         self.z = temp.z
         file.close
 
+    def copy(self):
+        return Vector3D(self.x, self.y, self.z)
+
+
         
     
 

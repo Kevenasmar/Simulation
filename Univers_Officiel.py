@@ -6,6 +6,7 @@ from pygame.locals import *
 from types import MethodType
 from MoteurCC import MoteurCC
 from Forces import *
+from Barre2D import Barre
 import math
 
 
@@ -16,6 +17,7 @@ class Univers(object):
         self.population = []
         self.bars = []
         self.motors = []
+        self.barres = []
         self.generators = []
         self.step = step
 
@@ -41,6 +43,10 @@ class Univers(object):
             if isinstance(e, MoteurCC):
                 self.motors.append(e)
 
+            if isinstance(e,Barre):
+                self.barres.append(e)
+
+
     def addGenerators(self, *members):
         for g in members:
             self.generators.append(g)
@@ -53,6 +59,11 @@ class Univers(object):
 
         for m in self.motors : 
             m.simulate(self.step)
+        
+        for b in self.barres:
+            for source in self.generators:
+                source.setForce(b)
+            b.simulate(self.step)
         
         self.time.append(self.time[-1]+self.step)
 
@@ -67,14 +78,17 @@ class Univers(object):
         
         figure(self.name)
         
-        for agent in self.population :
-            agent.plot()
+        for p in self.population :
+            p.plot()
+
+        for b in self.barres : 
+            b.plot()
             
         legend()
         show()
     
     def gameInteraction(self,events,keys):
-        # Fonctin qui sera surchargée par le client pour définir ses intéractions
+        # Fonction qui sera surchargée par le client pour définir ses intéractions
         pass
 
     def simulateRealTime(self):
@@ -86,7 +100,7 @@ class Univers(object):
         running = self.game
 
         while running:
-            screen.fill((240, 240, 240))
+            screen.fill((255, 255, 255))
             pygame.event.pump()
             keys = pygame.key.get_pressed()
             events = pygame.event.get()
@@ -101,7 +115,7 @@ class Univers(object):
             self.gameInteraction(events, keys)
             self.simulateFor(1 / self.gameFPS)
 
-             # === DRAW GRID ===
+        # === DRAW GRID ===
             grid_color = (200, 200, 200)  # light gray
             grid_spacing = 10  # 10 units in simulation space
             pixel_spacing = int(grid_spacing * self.scale)
@@ -114,22 +128,26 @@ class Univers(object):
             for y in range(0, H, pixel_spacing):
                 pygame.draw.line(screen, grid_color, (0, y), (W, y), 1)
 
-            # === DRAW OBJECTS ===
-            for t in self.population:
-                if hasattr(t, 'gameDraw'):
-                    t.gameDraw(self.scale, screen)
+        # === DRAW OBJECTS ===
+            for p in self.population:
+                if hasattr(p, 'gameDraw'):
+                    p.gameDraw(self.scale, screen)
 
-            for t in self.motors:
-                if hasattr(t, 'gameDraw'):
-                    t.gameDraw(self.scale, screen)
+            for m in self.motors:
+                if hasattr(m, 'gameDraw'):
+                    m.gameDraw(self.scale, screen)
+            
+            for b in self.barres : 
+                if hasattr(b,'gameDraw'):
+                    b.gameDraw(self.scale,screen)
 
             # Flip vertically if needed
-            flip_surface = pygame.transform.flip(screen, False, True)
-            screen.blit(flip_surface, (0, 0))
+            # flip_surface = pygame.transform.flip(screen, False, True)
+            # screen.blit(flip_surface, (0, 0))
 
             # Draw time
             font_obj = pygame.font.Font('freesansbold.ttf', 12)
-            text_surface_obj = font_obj.render(('time: %.2f' % self.time[-1]), True, 'green', (240, 240, 240))
+            text_surface_obj = font_obj.render(('time: %.2f' % self.time[-1]), True, 'black', (255, 255, 255))
             text_rect_obj = text_surface_obj.get_rect()
             text_rect_obj.topleft = (0, 0)
             screen.blit(text_surface_obj, text_rect_obj)
@@ -140,44 +158,44 @@ class Univers(object):
         pygame.quit()
 
 
-if __name__ == '__main__':
-    from pylab import figure, show, legend
+# if __name__ == '__main__':
+#     from pylab import figure, show, legend
 
-    R = 1.0
-    L = 0.001
-    k_c = 0.01
-    k_e = 0.01
-    J = 0.01
-    f = 0.1
-    Um = 1.0
-    P = V3D(50, 50, 0)
+#     R = 1.0
+#     L = 0.001
+#     k_c = 0.01
+#     k_e = 0.01
+#     J = 0.01
+#     f = 0.1
+#     Um = 1.0
+#     P = V3D(50, 50, 0)
 
-    monUnivers = Univers(game=True)
+#     monUnivers = Univers(game=True)
 
-    particule = Particule(p0=V3D(40, 50, 0))
-    moteur = MoteurCC(R, L, k_c, k_e, J, f, P)
-    moteur.setVoltage(220)
+#     particule = Particule(p0=V3D(40, 50, 0))
+#     moteur = MoteurCC(R, L, k_c, k_e, J, f, P)
+#     moteur.setVoltage(220)
 
-    # Ajout des entités
-    monUnivers.addEntity(particule)
-    monUnivers.addEntity(moteur)
+#     # Ajout des entités
+#     monUnivers.addEntity(particule)
+#     monUnivers.addEntity(moteur)
 
-    # Générateurs de forces
-    gravity = Gravity()
-    bounce_x = Bounce_x()
-    bounce_y = Bounce_y()
-    force_moteur = ForceMoteur(moteur, particule)
-    force_ressort = SpringDamperMoteur(moteur, particule, k = 50, c = 1)
+#     # Générateurs de forces
+#     gravity = Gravity()
+#     bounce_x = Bounce_x()
+#     bounce_y = Bounce_y()
+#     force_moteur = ForceMoteur(moteur, particule)
+#     force_ressort = SpringDamperMoteur(moteur, particule, k = 50, c = 1)
 
-    # Ajout des forces à l’univers
-    monUnivers.addGenerators(force_moteur, force_ressort)
+#     # Ajout des forces à l’univers
+#     monUnivers.addGenerators(force_moteur, force_ressort)
 
-    # Plot d(Ω)
+#     # Plot d(Ω)
     
 
-    # Simulation
-    monUnivers.simulateRealTime()
-    monUnivers.plot()
+#     # Simulation
+#     monUnivers.simulateRealTime()
+#     monUnivers.plot()
 
     
 

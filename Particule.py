@@ -74,7 +74,7 @@ class Particule(object):
         else:
             color=self.color
             
-        pygame.draw.circle(screen,color,(X,Y),size*2,size)
+        pygame.draw.circle(screen,color,(X,Y),size*2)
         pygame.draw.line(screen,color,(X,Y),(X+VX,(Y+VY)),size)
 
 if __name__=='__main__':

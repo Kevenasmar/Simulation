@@ -4,122 +4,113 @@ import matplotlib.pyplot as plt
 from Forces import *
 
 class Barre:
-    def __init__(self, mass=1, long=1, theta=0, pos=V3D(), fixed=False, color='red', nom='barre'):
-        self.nom = nom
+    def __init__(self, mass=1, p0=V3D(), v0=V3D(), a0=V3D(), t0=0.0, o0=0.0, alpha0=0.0, long=10, fix=False, name="barre", color='red'):
         self.mass = mass
         self.L = long
-        self.theta = theta
-        self.pos = pos
-        self.fixed = fixed
+        self.name = name
         self.color = color
+        self.fix = fix
 
-        self.vel = V3D()      # Vitesse linéaire
-        self.acc = V3D()      # Accélération linéaire
-        self.omega = 0.0      # Vitesse angulaire
-        self.alpha = 0.0      # Accélération angulaire
+        # Translation
+        self.position = [p0]
+        self.speed = [v0]
+        self.acceleration = [a0]
+
+        # Rotation
+        self.theta = [t0]
+        self.omega = [o0]
+        self.alpha = [alpha0]
+
+        # Liste des forces appliquées à chaque pas
         self.forces = []
 
-        self.history = []
-
-    def __str__(self):
-        msg = 'Barre ('+str(self.mass)+', '+str(self.long)+', '+str(self.theta)+', '+str(self.pos)+', "'+self.name+'", "'+str(self.color)+'" )'
-        return msg
-    
-    def __repr__(self):
-        return str(self)
-    
     def applyForce(self, force, point):
         if not isinstance(force, V3D):
-            raise ValueError("force doit être un vecteur de type Vector3D")
+            raise ValueError("force doit être un V3D")
         if not -1 <= point <= 1:
-            raise ValueError("point doit être compris entre -1 et 1")
-    
+            raise ValueError("point doit être dans [-1, 1]")
         self.forces.append((force, point))
 
-
     def getInertia(self):
-        return (1/12) * self.mass * self.L**2
-    
-    def simulate(self,step):
+        return (1 / 12) * self.mass * self.L**2
+
+    def getPosition(self):
+        return self.position[-1]
+
+    def getSpeed(self):
+        return self.speed[-1]
+
+    def getAngle(self):
+        return self.theta[-1]
+
+    def getAngularSpeed(self):
+        return self.omega[-1]
+
+    def simulate(self, step):
         self.pfd(step)
-    
 
     def pfd(self, step):
-        if self.fixed:
-            # Si la barre est fixe : pas de mouvement
-            self.acc = V3D()
-            self.vel = V3D()
-            self.alpha = 0.0
-            self.omega = 0.0
+        if self.fix:
+            self.acceleration.append(V3D())
+            self.speed.append(V3D())
+            self.position.append(self.position[-1])
+            self.alpha.append(0.0)
+            self.omega.append(0.0)
+            self.theta.append(self.theta[-1])
             return
 
-        # === Initialisation ===
         total_force = V3D()
         total_moment = 0.0
-        dir_barre = V3D(np.cos(self.theta), np.sin(self.theta), 0)
+        dir_barre = V3D(np.cos(self.theta[-1]), np.sin(self.theta[-1]), 0)
 
-        # === Calcul des forces et moments en une seule boucle ===
         for (f, p_rel) in self.forces:
             total_force += f
-
-            # Moment (r × F) où r est la position relative le long de la barre
             r = (p_rel * self.L / 2) * dir_barre
-            moment = r.x * f.y - r.y * f.x  # composante z du produit vectoriel
+            moment = r.x * f.y - r.y * f.x
             total_moment += moment
 
-        # === Translation ===
+        # Translation
         a = total_force * (1 / self.mass)
-        v = self.vel + a * step
-        p = self.pos + self.vel * step + 0.5 * a * step**2
+        v = self.speed[-1] + a * step
+        p = self.position[-1] + self.speed[-1] * step + 0.5 * a * step**2
 
-        self.acc = a
-        self.vel = v
-        self.pos = p
-        self.history.append(self.pos)
+        self.acceleration.append(a)
+        self.speed.append(v)
+        self.position.append(p)
 
-        # === Rotation ===
+        # Rotation
         alpha = total_moment / self.getInertia()
-        omega = self.omega + alpha * step
-        theta = self.theta + self.omega * step + 0.5 * alpha * step**2
+        omega = self.omega[-1] + alpha * step
+        theta = self.theta[-1] + self.omega[-1] * step + 0.5 * alpha * step**2
 
-        self.alpha = alpha
-        self.omega = omega
-        self.theta = theta
+        self.alpha.append(alpha)
+        self.omega.append(omega)
+        self.theta.append(theta)
 
-        # === Réinitialisation des forces ===
+        # Reset des forces
         self.forces = []
-
-
 
     def plot(self):
         from pylab import plot
-        X = []
-        Y = []
-        for pos in self.history:
-            X.append(pos.x)
-            Y.append(pos.y)
-
-        return plot(X, Y, color=self.color, label=self.nom) + plot(X[-1], Y[-1], 'o', color=self.color)
+        X = [pos.x for pos in self.position]
+        Y = [pos.y for pos in self.position]
+        return plot(X, Y, color=self.color, label=self.name) + plot(X[-1], Y[-1], 'o', color=self.color)
 
     def gameDraw(self, scale, screen):
         import pygame
         if not screen:
             return
 
-        # Position du centre (sans inversion ici)
-        cx = self.pos.x * scale
-        cy = self.pos.y * scale
-
-        # Longueur en pixels (moitié de chaque côté)
+        pos = self.position[-1]
+        angle = self.theta[-1]
+        cx = pos.x * scale
+        cy = pos.y * scale
         demi_L = (self.L / 2) * scale
-        dx = demi_L * np.cos(self.theta)
-        dy = demi_L * np.sin(self.theta)
+        dx = demi_L * np.cos(angle)
+        dy = demi_L * np.sin(angle)
 
-        # Coordonnées des extrémités
         x1, y1 = int(cx - dx), int(cy - dy)
         x2, y2 = int(cx + dx), int(cy + dy)
 
         pygame.draw.line(screen, pygame.Color(self.color), (x1, y1), (x2, y2), width=4)
         pygame.draw.circle(screen, pygame.Color(self.color), (int(cx), int(cy)), 5)
-
-

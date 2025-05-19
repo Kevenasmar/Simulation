@@ -4,20 +4,20 @@ from vector3D import Vector3D as V3D
 from Forces import *
 
 
-# === MAIN SIMULATION ===
 if __name__ == "__main__":
     U = Univers(game=True)
 
-    #Entités dans mon univers
-    barre = Barre(mass = 1, long = 10, theta = 0, pos = V3D(50,50,0), fixed = False, color = 'red', nom = 'barre1')
-    U.addEntity(barre)
-
-    p = Particule(mass = 1, p0 = V3D(30,50,0))
+    # Particule fixe : centre de rotation
+    p = Particule(fix=True, p0 = V3D(40,50,0))
     U.addEntity(p)
+    
+    b = Barre(mass = 1, p0 = V3D(45,50,0),t0 = 0, long = 10)
+    U.addEntity(b)
 
-    # Forces dans mon univers
+    # Forces
     gravity = Gravity()
-    U.addGenerators(gravity)
+    pivot = Pivot(b,p,-1)
+    U.addGenerators(gravity, pivot)
 
     U.simulateRealTime()
     U.plot()

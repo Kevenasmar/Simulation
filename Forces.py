@@ -137,38 +137,39 @@ class ForceMoteur(Force):
 
 
 
-class Pivot:
-    def __init__(self, barre, anchor_point=-1, k=1000, c=100):
-        """
-        barre : instance de Barre
-        anchor_point : position normalisée sur la barre [-1,1]
-        k : raideur du ressort (force de rappel)
-        c : coefficient d'amortissement (damping)
-        """
+class Pivot(Force):
+    def __init__(self, barre, point_fix=V3D(), point=0.0, k=1000, c=50, name="pivot", active=True):
+        super().__init__(V3D(), name=name, active=active)
         self.barre = barre
-        self.anchor_point = anchor_point
+        self.point_fix = point_fix  # position fixe dans le repère monde
+        self.point = point          # position normalisée sur la barre [-1, 1]
         self.k = k
         self.c = c
 
-        # Position fixe dans le référentiel global, initialisée au départ
-        dir_barre = V3D(np.cos(barre.theta), np.sin(barre.theta), 0)
-        self.anchor_pos = barre.pos + (anchor_point * barre.L / 2) * dir_barre
+    def setForce(self, obj):
+        if not self.active or obj != self.barre:
+            return
 
-    def setForce(self):
-        # Position actuelle du point ancré sur la barre
-        dir_barre = V3D(np.cos(self.barre.theta), np.sin(self.barre.theta), 0)
-        point_pos = self.barre.pos + (self.anchor_point * self.barre.L / 2) * dir_barre
+        # Position du centre de masse et angle actuel
+        pos = self.barre.getPosition()
+        theta = self.barre.getAngle()
 
-        # Vitesse du point (approximée par vitesse linéaire barre, peut être améliorée)
-        point_vel = self.barre.vel  # Approximé, car rotation non prise en compte ici
+        # Vecteur direction de la barre
+        dir_barre = V3D(np.cos(theta), np.sin(theta), 0)
 
-        # Erreur de position entre point courant et ancre fixe
-        error_pos = self.anchor_pos - point_pos
+        # Position du point d'attache sur la barre dans le repère monde
+        P = pos + (self.point * self.barre.L / 2) * dir_barre
 
-        # Force de rappel du ressort + amortissement
-        force = self.k * error_pos - self.c * point_vel
+        # Vitesse du point : translation + rotation (omega × r)
+        r = (self.point * self.barre.L / 2) * dir_barre
+        omega = self.barre.getAngularSpeed()
+        v_translation = self.barre.getSpeed()
+        v_rotation = V3D(-omega * r.y, omega * r.x, 0)
+        v_point = v_translation + v_rotation
 
-        # Applique la force au point d'ancrage de la barre (bloque la translation)
-        self.barre.applyForce(force, self.anchor_point)
+        # Force de rappel (ressort + amortisseur)
+        f = self.k * (self.point_fix.getPosition() - P) - self.c * v_point
 
-       
+
+        # Application de la force sur la barre au point normalisé
+        self.barre.applyForce(f, self.point)

@@ -11,7 +11,7 @@ import math
 
 
 class Univers(object):
-    def __init__(self, name='ici', t0=0, step=0.01, dimensions=(100, 100), game=False, gameDimensions=(1024, 780), fps=60):
+    def __init__(self, name='ici', t0=0, step=0.001, dimensions=(100, 100), game=False, gameDimensions=(1024, 780), fps=60):
         self.name = name
         self.time = [t0]
         self.population = []
@@ -168,44 +168,6 @@ class Univers(object):
         pygame.quit()
 
 
-# if __name__ == '__main__':
-#     from pylab import figure, show, legend
-
-#     R = 1.0
-#     L = 0.001
-#     k_c = 0.01
-#     k_e = 0.01
-#     J = 0.01
-#     f = 0.1
-#     Um = 1.0
-#     P = V3D(50, 50, 0)
-
-#     monUnivers = Univers(game=True)
-
-#     particule = Particule(p0=V3D(40, 50, 0))
-#     moteur = MoteurCC(R, L, k_c, k_e, J, f, P)
-#     moteur.setVoltage(220)
-
-#     # Ajout des entités
-#     monUnivers.addEntity(particule)
-#     monUnivers.addEntity(moteur)
-
-#     # Générateurs de forces
-#     gravity = Gravity()
-#     bounce_x = Bounce_x()
-#     bounce_y = Bounce_y()
-#     force_moteur = ForceMoteur(moteur, particule)
-#     force_ressort = SpringDamperMoteur(moteur, particule, k = 50, c = 1)
-
-#     # Ajout des forces à l’univers
-#     monUnivers.addGenerators(force_moteur, force_ressort)
-
-#     # Plot d(Ω)
-    
-
-#     # Simulation
-#     monUnivers.simulateRealTime()
-#     monUnivers.plot()
 
     
 

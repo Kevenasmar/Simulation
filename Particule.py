@@ -53,6 +53,7 @@ class Particule(object):
     
         return plot(X,Y,color=self.color,label=self.name)+plot(X[-1],Y[-1],'o',color=self.color)    
 
+
     def getPosition(self):
         return self.position[-1]
     

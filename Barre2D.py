@@ -112,5 +112,12 @@ class Barre:
         x1, y1 = int(cx - dx), int(cy - dy)
         x2, y2 = int(cx + dx), int(cy + dy)
 
+        X = int(scale*self.getPosition().x)
+        Y = int(scale*self.getPosition().y)
+    
+        VX = int(scale*self.getSpeed().x)
+        VY = int(scale*self.getSpeed().y) 
+
         pygame.draw.line(screen, pygame.Color(self.color), (x1, y1), (x2, y2), width=4)
         pygame.draw.circle(screen, pygame.Color(self.color), (int(cx), int(cy)), 5)
+        pygame.draw.line(screen,self.color,(X,Y),(X+VX,(Y+VY)),3)

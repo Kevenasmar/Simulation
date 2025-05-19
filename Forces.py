@@ -84,9 +84,16 @@ class SpringDamper(Force):
                 pass
             
 class Link(SpringDamper):
-    def __init__(self,P0,P1,name="link"):
-        l0 = (P0.getPosition()-P1.getPosition()).mod()
-        SpringDamper.__init__(self,P0, P1,1000,100,l0,True,"link")
+    def __init__(self, P0, P1, name="link"):
+        l0 = (P0.getPosition() - P1.getPosition()).mod()
+        SpringDamper.__init__(self, P0, P1, 1000, 100, l0, True, name)
+        self.P0 = P0
+        self.P1 = P1
+
+    def getCurrentAngle(self):
+        vec = self.P1.getPosition() - self.P0.getPosition()
+        return np.arctan2(vec.y, vec.x)
+
 
 
 class SpringDamperMoteur(Force):
@@ -138,7 +145,7 @@ class ForceMoteur(Force):
 
 
 class Pivot(Force):
-    def __init__(self, barre, point_fix, point=0.0, k=1000, c=50, name="pivot", active=True):
+    def __init__(self, barre, point_fix, point=0.0, k=1000, c=25, name="pivot", active=True):
         super().__init__(V3D(), name=name, active=active)
         self.barre = barre
         self.point_fix = point_fix  # Doit être une Particule

@@ -46,46 +46,50 @@ class Barre:
 
     def pfd(self, step):
         if self.fixed:
+            # Si la barre est fixe : pas de mouvement
             self.acc = V3D()
+            self.vel = V3D()
             self.alpha = 0.0
+            self.omega = 0.0
             return
 
-        # Initialisation des sommes
+        # === Initialisation ===
         total_force = V3D()
         total_moment = 0.0
+        dir_barre = V3D(np.cos(self.theta), np.sin(self.theta), 0)
 
-        for (f, p) in self.forces:
-            # Position réelle du point d'application (dans le référentiel global)
-            # Le point est donné en coordonnée normalisée le long de la barre
-            # On construit d'abord un vecteur de direction de la barre
-            dir_barre = V3D(np.cos(self.theta), np.sin(self.theta), 0)
-            r = (p * self.L / 2) * dir_barre  # vecteur du centre jusqu'au point d'application
-
-            # Somme des forces
+        # === Calcul des forces et moments en une seule boucle ===
+        for (f, p_rel) in self.forces:
             total_force += f
 
-            # Moment par rapport au centre : r ^ F (produit vectoriel)
-            # Comme tout est dans le plan (x, y), seul le composant z du moment est utile
-            moment = r.x * f.y - r.y * f.x
+            # Moment (r × F) où r est la position relative le long de la barre
+            r = (p_rel * self.L / 2) * dir_barre
+            moment = r.x * f.y - r.y * f.x  # composante z du produit vectoriel
             total_moment += moment
 
-        # Mise à jour des accélérations
-        self.acc = total_force *(1/ self.mass)
-        self.alpha = total_moment *(1/ self.getInertia())
+        # === Translation ===
+        a = total_force * (1 / self.mass)
+        v = self.vel + a * step
+        p = self.pos + self.vel * step + 0.5 * a * step**2
 
-        # Réinitialisation de la liste des forces (consommées à chaque pas)
+        self.acc = a
+        self.vel = v
+        self.pos = p
+        self.history.append(self.pos)
+
+        # === Rotation ===
+        alpha = total_moment / self.getInertia()
+        omega = self.omega + alpha * step
+        theta = self.theta + self.omega * step + 0.5 * alpha * step**2
+
+        self.alpha = alpha
+        self.omega = omega
+        self.theta = theta
+
+        # === Réinitialisation des forces ===
         self.forces = []
 
-        # Mise à jour des vitesses et positions
-        v_old = self.vel.copy()
-        self.vel += self.acc * step
-        self.pos += v_old * step + 0.5 * self.acc * step**2
 
-
-
-        self.omega += self.alpha * step
-        self.theta += self.omega * step
-        self.history.append(self.pos)
 
     def plot(self):
         from pylab import plot

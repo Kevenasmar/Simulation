@@ -1,6 +1,7 @@
 from Particule import Particule
 from Barre2D import Barre
 from vector3D import Vector3D as V3D
+import numpy as np
 
 class Force(object):
     
@@ -136,26 +137,38 @@ class ForceMoteur(Force):
 
 
 
-# === LIAISON PIVOT (FIXE) ===
-class Pivot(Force):
-    def __init__(self, barre: Barre, point=-1, k=1000, c=100, name="pivot"):
-        super().__init__(V3D(), name, active=True)
+class Pivot:
+    def __init__(self, barre, anchor_point=-1, k=1000, c=100):
+        """
+        barre : instance de Barre
+        anchor_point : position normalisée sur la barre [-1,1]
+        k : raideur du ressort (force de rappel)
+        c : coefficient d'amortissement (damping)
+        """
         self.barre = barre
-        self.point = point  
+        self.anchor_point = anchor_point
         self.k = k
         self.c = c
-        self.ref_pos = self.get_anchor()
 
-    def get_anchor(self):
-        return self.point
+        # Position fixe dans le référentiel global, initialisée au départ
+        dir_barre = V3D(np.cos(barre.theta), np.sin(barre.theta), 0)
+        self.anchor_pos = barre.pos + (anchor_point * barre.L / 2) * dir_barre
 
-    def setForce(self, entity):
-        if entity != self.barre:
-            return
+    def setForce(self):
+        # Position actuelle du point ancré sur la barre
+        dir_barre = V3D(np.cos(self.barre.theta), np.sin(self.barre.theta), 0)
+        point_pos = self.barre.pos + (self.anchor_point * self.barre.L / 2) * dir_barre
 
-        P = self.get_anchor()
-        V = self.barre.vel 
-        error = self.ref_pos - P
-        correction = self.k * error - self.c * V
-        self.barre.applyForce(correction, point=self.point)
-  
+        # Vitesse du point (approximée par vitesse linéaire barre, peut être améliorée)
+        point_vel = self.barre.vel  # Approximé, car rotation non prise en compte ici
+
+        # Erreur de position entre point courant et ancre fixe
+        error_pos = self.anchor_pos - point_pos
+
+        # Force de rappel du ressort + amortissement
+        force = self.k * error_pos - self.c * point_vel
+
+        # Applique la force au point d'ancrage de la barre (bloque la translation)
+        self.barre.applyForce(force, self.anchor_point)
+
+       

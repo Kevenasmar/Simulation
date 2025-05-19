@@ -19,6 +19,5 @@ if __name__ == "__main__":
     gravity = Gravity()
     U.addGenerators(gravity)
 
-    U.addEntity(barre)
     U.simulateRealTime()
     U.plot()

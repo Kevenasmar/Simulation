@@ -1,8 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pygame
-from vector3D import Vector3D as v
-from MoteurCC import MoteurCC
+from Classes.vector3D import Vector3D as v
+from Classes.MoteurCC import MoteurCC
 
 
 if __name__ =="__main__":

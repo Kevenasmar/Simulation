@@ -1,14 +1,14 @@
 from random import random,randint
-from vector3D import Vector3D as V3D
-from Particule import Particule
+from Classes.vector3D import Vector3D as V3D
+from Classes.Particule import Particule
 import pygame
 from pygame.locals import *
 from types import MethodType
-from MoteurCC import MoteurCC
-from Forces import *
-from Barre2D import Barre
+from Classes.MoteurCC import MoteurCC
+from Classes.Forces import *
+from Classes.Barre2D import Barre
 import math
-from Univers_Officiel import Univers
+from Classes.Univers_Officiel import Univers
 
 if __name__ == '__main__':
     from pylab import figure, show, legend

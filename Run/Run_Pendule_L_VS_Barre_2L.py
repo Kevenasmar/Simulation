@@ -1,7 +1,7 @@
-from Univers_Officiel import Univers
-from Barre2D import Barre
-from vector3D import Vector3D as V3D
-from Forces import *
+from Classes.Univers_Officiel import Univers
+from Classes.Barre2D import Barre
+from Classes.vector3D import Vector3D as V3D
+from Classes.Forces import *
 import matplotlib.pyplot as plt
 
 

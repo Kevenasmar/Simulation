@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
-from MoteurCC import MoteurCC
-from ControlPID_vitesse import ControlPID_vitesse
+from Classes.MoteurCC import MoteurCC
+from Classes.ControlPID_vitesse import ControlPID_vitesse
 
 if __name__ == "__main__":
     # Paramètres moteur

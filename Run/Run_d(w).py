@@ -1,8 +1,8 @@
-from vector3D import Vector3D as V3D
-from MoteurCC import MoteurCC
-from Forces import *
+from Classes.vector3D import Vector3D as V3D
+from Classes.MoteurCC import MoteurCC
+from Classes.Forces import *
 from matplotlib import pyplot as plt
-from Univers_Officiel import Univers
+from Classes.Univers_Officiel import Univers
 
 
 if __name__ == '__main__':

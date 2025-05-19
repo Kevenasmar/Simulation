@@ -5,7 +5,8 @@ from Forces import *
 import matplotlib.pyplot as plt
 from Particule import Particule
 from math import atan2, degrees
-
+from scipy.signal import find_peaks
+import numpy as np
 
 if __name__ == "__main__":
     theta_p2p3 = []
@@ -31,10 +32,14 @@ if __name__ == "__main__":
     link = Link(A,B)
     U.addGenerators(gravity, pivot, link)
 
-    U.simulateRealTime()
 
+    #Pour voir la simulation
+    # U.simulateAll()
+
+
+    #Pour voir le graphes theta(t)
     # Simulation manuelle pour enregistrer les angles
-    for _ in range(len(U.time)): # CHANGER LE TEMPS SI NECESSAIRE
+    for _ in range(15000): # CHANGER LE TEMPS SI NECESSAIRE
         U.simulateAll()
 
         v1 = B.getPosition() - A.getPosition()
@@ -49,7 +54,7 @@ if __name__ == "__main__":
 
 
 
-    plt.figure()
+    plt.figure(figsize=(12,8))
     plt.plot(time_tab, theta_p2p3, label="θ1(t) (AB)")
     plt.plot(time_tab, theta_barre, label="θ2(t) (barre b1)")
     plt.xlabel("Temps (s)")
@@ -58,4 +63,27 @@ if __name__ == "__main__":
     plt.legend()
     plt.grid()
     plt.show()
+
+    # Convertir en tableau numpy
+    theta1_array = np.array(theta_p2p3)
+    theta2_array = np.array(theta_barre)
+    time_array = np.array(time_tab)
+
+    # Trouver les pics (maxima locaux)
+    peaks1, _ = find_peaks(theta1_array)
+    peaks2, _ = find_peaks(theta2_array)
+
+    # Extraire les temps associés
+    times1 = time_array[peaks1]
+    times2 = time_array[peaks2]
+
+    # Calculer les différences de temps entre pics successifs
+    T1 = np.mean(np.diff(times1)) if len(times1) > 1 else float('nan')
+    T2 = np.mean(np.diff(times2)) if len(times2) > 1 else float('nan')
+    delta = np.abs(T2 - T1)
+
+    # Affichage des périodes
+    print(f"Période θ1 (AB): {T1:.3f} s")
+    print(f"Période θ2 (barre): {T2:.3f} s")
+    print(f"dT = {delta:.3f} s")
 

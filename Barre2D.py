@@ -120,4 +120,4 @@ class Barre:
 
         pygame.draw.line(screen, pygame.Color(self.color), (x1, y1), (x2, y2), width=4)
         pygame.draw.circle(screen, pygame.Color(self.color), (int(cx), int(cy)), 5)
-        pygame.draw.line(screen,self.color,(X,Y),(X+VX,(Y+VY)),3)
+        pygame.draw.line(screen,'blue',(X,Y),(X+VX,(Y+VY)),3)

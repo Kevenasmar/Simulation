@@ -35,6 +35,18 @@ class Gravity(Force):
             if self.active : 
                 entity.applyForce(-self.g*entity.mass,0.0)
 
+class ForceSelect(Force):
+    
+    def __init__(self,force=V3D(),subject=None,name='force',active=True):
+        self.force = force
+        self.name = name
+        self.active = active
+        self.subjects=subject
+
+    def setForce(self,particule):
+        if self.active and particule in self.subjects:
+            particule.applyForce(self.force)
+
 class Bounce_y(Force):
     def __init__(self,k=1,step=0.1,name="boing",active=True):
         self.name=name
@@ -186,3 +198,60 @@ class Pivot(Force):
         force = self.k * (d - self.l0) * n - self.c * v_proj * n
 
         self.barre.applyForce(force, self.point)
+
+
+class SpringDamperBarre(Force):
+    def __init__(self, B0, point0, B1, point1, k=100, c=10, name="spring_barre", active=True):
+        super().__init__(V3D(), name, active)
+        self.B0 = B0
+        self.B1 = B1
+        self.p0 = point0  # entre -1 et +1
+        self.p1 = point1
+        self.k = k
+        self.c = c
+        self.active = active
+
+        # Longueur au repos (l0) initiale
+        P0 = self._get_global_position(B0, point0)
+        P1 = self._get_global_position(B1, point1)
+        self.l0 = (P1 - P0).mod()
+
+    def _get_global_position(self, barre, point):
+        """Position du point donné sur la barre"""
+        angle = barre.getAngle()
+        dir_barre = V3D(np.cos(angle), np.sin(angle), 0)
+        return barre.getPosition() + (point * barre.L / 2) * dir_barre
+
+    def _get_global_speed(self, barre, point):
+        """Vitesse du point donné sur la barre"""
+        angle = barre.getAngle()
+        omega = barre.getAngularSpeed()
+        dir_barre = V3D(np.cos(angle), np.sin(angle), 0)
+        r = (point * barre.L / 2) * dir_barre
+        v_translation = barre.getSpeed()
+        v_rotation = V3D(-omega * r.y, omega * r.x, 0)
+        return v_translation + v_rotation
+
+    def setForce(self, entity):
+        if not self.active or entity not in [self.B0, self.B1]:
+            return
+
+        # Position et vitesse des extrémités
+        P0 = self._get_global_position(self.B0, self.p0)
+        P1 = self._get_global_position(self.B1, self.p1)
+        V0 = self._get_global_speed(self.B0, self.p0)
+        V1 = self._get_global_speed(self.B1, self.p1)
+
+        delta = P1 - P0
+        d = delta.mod()
+        if d == 0:
+            return
+        n = delta.norm()
+
+        v_rel = (V1 - V0) ** n
+        force = (self.k * (d - self.l0) + self.c * v_rel) * n
+
+        if entity == self.B0:
+            self.B0.applyForce(force, self.p0)
+        elif entity == self.B1:
+            self.B1.applyForce(-force, self.p1)

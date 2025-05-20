@@ -9,10 +9,7 @@ from scipy.signal import find_peaks
 import numpy as np
 
 if __name__ == "__main__":
-    theta_p2p3 = []
-    theta_barre = []
-    time_tab = []
- 
+     
     U = Univers(game=True)
     
     b1 = Barre(mass = 1, p0 = V3D(30,30,0),t0=radians(45), long = 10)

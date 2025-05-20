@@ -191,10 +191,9 @@ class Pivot(Force):
         v_rotation = V3D(-omega * r.y, omega * r.x, 0)
         v_point = v_translation + v_rotation
 
-        # Vitesse projetée sur l'axe du ressort
+    
         v_proj = v_point ** n
 
-        # Force de rappel + amortissement
         force = self.k * (d - self.l0) * n - self.c * v_proj * n
 
         self.barre.applyForce(force, self.point)
@@ -205,7 +204,7 @@ class SpringDamperBarre(Force):
         super().__init__(V3D(), name, active)
         self.B0 = B0
         self.B1 = B1
-        self.p0 = point0  # entre -1 et +1
+        self.p0 = point0  
         self.p1 = point1
         self.k = k
         self.c = c
@@ -261,15 +260,14 @@ class ForceSelectBarre(Force):
         super().__init__(force, name, active)
         self.barre = barre
         self.point = point
-        self.justActivated = False  # permet de l'activer pour un seul pas
+        self.justActivated = False 
 
     def setForce(self, entity):
         if self.active and entity == self.barre:
             self.barre.applyForce(self.force, self.point)
-            self.justActivated = True  # on note qu’elle a été utilisée
+            self.justActivated = True  
 
     def postStep(self):
-        # Si elle vient d’être utilisée, on la désactive immédiatement
         if self.justActivated:
             self.active = False
             self.justActivated = False

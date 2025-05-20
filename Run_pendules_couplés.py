@@ -43,7 +43,6 @@ link = SpringDamperBarre(b1, 1, b2, 1, k=5, c=0.1)
 mode1 = ForceSelectBarre(V3D(100, 0, 0), b1, 1, active=False)
 mode12 = ForceSelectBarre(V3D(-100, 0, 0), b2, 1, active=False)
 mode2 = ForceSelectBarre(V3D(100, 0, 0), b1, 1, active=False)
-# mode22 = ForceSelectBarre(V3D(100, 0, 0), b2, 1, active=False)
 
 # === Ajout par défaut
 U.addGenerators(gravity, pivotA, pivotB, link)

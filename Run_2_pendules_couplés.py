@@ -38,12 +38,12 @@ U.addEntity(A, B, b1, b2)
 gravity = Gravity()
 pivotA = Pivot(b1, A, point=-1, k=1000, c=100)
 pivotB = Pivot(b2, B, point=-1, k=1000, c=100)
-link = SpringDamperBarre(b1, 1, b2, 1, k=7, c=0.1)
+link = SpringDamperBarre(b1, 1, b2, 1, k=5, c=0.1)
 
 mode1 = ForceSelectBarre(V3D(100, 0, 0), b1, 1, active=False)
 mode12 = ForceSelectBarre(V3D(-100, 0, 0), b2, 1, active=False)
 mode2 = ForceSelectBarre(V3D(100, 0, 0), b1, 1, active=False)
-mode22 = ForceSelectBarre(V3D(100, 0, 0), b2, 1, active=False)
+# mode22 = ForceSelectBarre(V3D(100, 0, 0), b2, 1, active=False)
 
 # === Ajout par défaut
 U.addGenerators(gravity, pivotA, pivotB, link)
@@ -59,7 +59,6 @@ def interaction(events, keys):
                 print("Mode propre 1 activé")
             elif mode_selected == 2:
                 mode2.active = True
-                mode22.active = True
                 print("Mode propre 2 activé")
 
 U.gameInteraction = interaction
@@ -83,12 +82,11 @@ while running:
                     U.addGenerators(mode1, mode12)
                 if mode2 in U.generators:
                     U.generators.remove(mode2)
-                    U.generators.remove(mode22)
                 mode_selected = 1
                 print("Mode propre 1 sélectionné")
             elif button2.collidepoint(event.pos):
                 if mode2 not in U.generators:
-                    U.addGenerators(mode2, mode22)
+                    U.addGenerators(mode2)
                 if mode1 in U.generators:
                     U.generators.remove(mode1)
                     U.generators.remove(mode12)
@@ -125,6 +123,16 @@ while running:
     pygame.draw.rect(screen, RED if mode_selected == 2 else GRAY, button2)
     screen.blit(font.render("Mode Propre 1", True, (0, 0, 0)), (button1.x + 20, button1.y + 10))
     screen.blit(font.render("Mode Propre 2", True, (0, 0, 0)), (button2.x + 20, button2.y + 10))
+   
+   
+    # === Afficher les instructions en bas ===
+    font_obj = pygame.font.Font(None, 24)
+    instruction_text = "Sélectionner le mode et appuyer sur ESPACE pour l'activer"
+    text_surface = font_obj.render(instruction_text, True, (0, 0, 0))
+    text_rect = text_surface.get_rect()
+    text_rect.midbottom = (WIDTH // 2, HEIGHT - 15)  # centré en bas
+    screen.blit(text_surface, text_rect)
+
 
     pygame.display.flip()
     clock.tick(U.gameFPS)

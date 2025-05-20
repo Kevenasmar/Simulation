@@ -9,19 +9,21 @@ from scipy.signal import find_peaks
 import numpy as np
 
 if __name__ == "__main__":
-     
+
     U = Univers(game=True)
-    
-    b1 = Barre(mass = 1, p0 = V3D(30,30,0),t0=radians(45), long = 10)
-    U.addEntity(b1)
 
-    # Forces
-    gravity = Gravity()
-    U.addGenerators(gravity)
+    p1 = Particule(p0=V3D(50,60),fix=True)
+    b1 = Barre(mass = 1, p0=V3D(45,40))
+    # Ajout des entités
+    U.addEntity(p1, b1)
 
+    # Liaison glissière le long de l'axe horizontal
+    glissiere = GlissiereBarreParticule(b1, p1, axis=V3D(1, 0, 0))
+    force = ForceSelectBarre(V3D(5,0,0),b1,-1)
+    U.addGenerators(glissiere)
 
-    #Pour voir la simulation
     U.simulateRealTime()
+
 
 
     

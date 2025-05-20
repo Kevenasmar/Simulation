@@ -272,3 +272,69 @@ class ForceSelectBarre(Force):
             self.active = False
             self.justActivated = False
 
+
+class GlissiereBarreParticule(SpringDamper):
+    def __init__(self, barre: Barre, particule: Particule, axis=V3D(1, 0, 0), k=1000, c=100, name="glissiere_barre_particule"):
+        # Longueur à l'initialisation
+        l0 = (barre.getPosition() - particule.getPosition()).mod()
+        super().__init__(barre, particule, k, c, l0, active=True, name=name)
+        self.axis = axis.norm()
+
+    def setForce(self, obj):
+        # Direction relative barre - particule
+        vec_dir = self.P1.getPosition() - self.P0.getPosition()
+        
+        # Supprimer la composante le long de l'axe autorisé (on garde ce qui "force à sortir" de l'axe)
+        vec_dir -= (vec_dir ** self.axis) * self.axis
+
+        if vec_dir.mod() < 1e-8:
+            return  # aucune force nécessaire si parfaitement sur le rail
+
+        # Direction de réaction (normale au rail)
+        v_n = vec_dir.norm()
+        flex = vec_dir.mod() - self.l0
+
+        # Vitesse relative
+        vit = self.P1.getSpeed() - self.P0.getSpeed()
+        vit_n = (vit ** v_n) * self.c
+
+        # Force à appliquer
+        force = (self.k * flex + vit_n) * v_n
+
+        # Appliquer la force selon le type
+        if obj == self.P0:
+            if isinstance(self.P0, Barre):
+                self.P0.applyForce(force, point=0)
+            else:
+                self.P0.applyForce(force)
+        elif obj == self.P1:
+            if isinstance(self.P1, Barre):
+                self.P1.applyForce(-force, point=0)
+            else:
+                self.P1.applyForce(-force)
+
+
+
+
+class Prism(SpringDamper):
+    def __init__(self,P0,P1,axis=V3D(),name="prism"):
+        l0 = (P0.getPosition()-P1.getPosition()).mod()
+        SpringDamper.__init__(self,P0, P1,1000,100,l0,True,name)
+        self.axis=axis.norm()
+
+    def setForce(self, particule):
+        vec_dir = self.P1.getPosition() - self.P0.getPosition()
+        vec_dir -= vec_dir ** self.axis * self.axis
+        v_n = vec_dir.norm()
+        flex = vec_dir.mod()-self.l0
+        
+        vit = self.P1.getSpeed() - self.P0.getSpeed()
+        vit_n = vit ** v_n * self.c 
+        
+        force = (self.k * flex + vit_n)* v_n
+        if particule == self.P0:
+            particule.applyForce(force)
+        elif particule == self.P1:
+            particule.applyForce(-force)
+        else:
+            pass

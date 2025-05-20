@@ -263,9 +263,10 @@ class ForceSelectBarre(Force):
         self.justActivated = False 
 
     def setForce(self, entity):
-        if self.active and entity == self.barre:
+        if self.active and entity is self.barre:
             self.barre.applyForce(self.force, self.point)
-            self.justActivated = True  
+            self.justActivated = True
+ 
 
     def postStep(self):
         if self.justActivated:
@@ -383,18 +384,33 @@ class PivotBarre(Force):
 
 
 
-    class ForceCorrecteur(Force):
-        def __init__(self, pendule, base, Kp=1000, Kd=100):
-            super().__init__(V3D(), name="force_correcteur", active=True)
-            self.pendule = pendule
-            self.base = base
-            self.Kp = Kp
-            self.Kd = Kd
+class ForceCorrecteur(Force):
+    def __init__(self, pendule, base, Kp=1000, Kd=100, Ki=0.0, max_force=2000, name="force_correcteur", active=True):
+        super().__init__(V3D(), name=name, active=active)
+        self.pendule = pendule
+        self.base = base
+        self.Kp = Kp
+        self.Kd = Kd
+        self.Ki = Ki
+        self.max_force = max_force
+        self.integral_error = 0.0
 
-        def setForce(self, obj):
-            if obj != self.base:
-                return
-            theta = self.pendule.getAngle()
-            omega = self.pendule.getAngularSpeed()
-            fx = -self.Kp * theta - self.Kd * omega
-            self.base.applyForce(V3D(fx, 0, 0), 0)
+    def setForce(self, obj):
+        if not self.active or obj != self.base:
+            return
+
+        theta = self.pendule.getAngle()  # écart angulaire par rapport à la verticale
+        omega = self.pendule.getAngularSpeed()  # vitesse angulaire
+
+        # Intégrale de l’erreur (anti-windup très simple)
+        self.integral_error += theta
+        self.integral_error = max(min(self.integral_error, 1), -1)
+
+        # PID
+        fx = -self.Kp * theta - self.Kd * omega - self.Ki * self.integral_error
+
+        # Limite de la force (sécurité)
+        fx = max(min(fx, self.max_force), -self.max_force)
+
+        # Appliquer la force sur la base (point central)
+        self.base.applyForce(V3D(fx, 0, 0), 0)

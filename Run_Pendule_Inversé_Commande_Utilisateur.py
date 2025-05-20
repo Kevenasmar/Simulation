@@ -23,7 +23,7 @@ if __name__ == "__main__":
 
     # Entités
     p1 = Particule(p0=V3D(50, 60), fix=True)
-    b1 = Barre(mass=1, p0=V3D(45, 40))
+    b1 = Barre(mass=1, p0=V3D(45, 40), color = 'blue')
     b2 = Barre(mass=1, p0=V3D(50, 40), t0=np.radians(-90))
     U.addEntity(p1, b1, b2)
 

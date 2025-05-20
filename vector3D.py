@@ -51,11 +51,11 @@ class Vector3D():
     def __rpow__(self,other): 
         return self**other      
 
-    def __eq__(self,other):
-        if (self.x == other.x and self.y == other.y and self.z == other.z):
-            return True
-        else:
+    def __eq__(self, other):
+        if not isinstance(other, Vector3D):
             return False
+        return self.x == other.x and self.y == other.y and self.z == other.z
+
         
     def mod(self):
         """La norme du Vector3D"""

@@ -11,8 +11,13 @@ class Barre:
         self.color = color
         self.fix = fix
 
+        angle = t0  
+        dir_barre = V3D(np.cos(angle), np.sin(angle), 0)
+        p_centre = p0 + (self.L / 2) * dir_barre  
+
+        self.position = [p_centre]
+
         # Translation
-        self.position = [p0]
         self.speed = [v0]
         self.acceleration = [a0]
 
@@ -101,23 +106,33 @@ class Barre:
         if not screen:
             return
 
-        pos = self.position[-1]
-        angle = self.theta[-1]
-        cx = pos.x * scale
-        cy = pos.y * scale
-        demi_L = (self.L / 2) * scale
-        dx = demi_L * np.cos(angle)
-        dy = demi_L * np.sin(angle)
+        angle = self.getAngle()
+        dir_barre = V3D(np.cos(angle), np.sin(angle), 0)
+        
+        # Extrémité gauche (référence visuelle)
+        pos_left = self.getPosition() - (self.L / 2) * dir_barre
+        pos_right = self.getPosition() + (self.L / 2) * dir_barre
 
-        x1, y1 = int(cx - dx), int(cy - dy)
-        x2, y2 = int(cx + dx), int(cy + dy)
+        x1 = int(pos_left.x * scale)
+        y1 = int(pos_left.y * scale)
+        x2 = int(pos_right.x * scale)
+        y2 = int(pos_right.y * scale)
 
-        X = int(scale*self.getPosition().x)
-        Y = int(scale*self.getPosition().y)
-    
-        VX = int(scale*self.getSpeed().x)
-        VY = int(scale*self.getSpeed().y) 
+        # Vitesse au centre
+        VX = int(scale * self.getSpeed().x)
+        VY = int(scale * self.getSpeed().y)
 
+        # Dessin de la barre
         pygame.draw.line(screen, pygame.Color(self.color), (x1, y1), (x2, y2), width=4)
-        pygame.draw.circle(screen, pygame.Color(self.color), (int(cx), int(cy)), 5)
-        pygame.draw.line(screen,'blue',(X,Y),(X+VX,(Y+VY)),3)
+
+        # Vecteur vitesse au centre
+        Xc = int(self.getPosition().x * scale)
+        Yc = int(self.getPosition().y * scale)
+        
+        # Cercle à gauche (référence)
+        pygame.draw.circle(screen, pygame.Color(self.color), (Xc, Yc), 5)
+
+        pygame.draw.line(screen, 'blue', (Xc, Yc), (Xc + VX, Yc + VY), 3)
+
+        
+

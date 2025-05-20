@@ -10,9 +10,6 @@ import matplotlib.pyplot as plt
 if __name__ == "__main__":
     # Initialisation Pygame
     pygame.init()
-    pygame.font.init()
-    font = pygame.font.SysFont('Arial', 20)
-
     WIDTH, HEIGHT = 800, 600
     screen = pygame.display.set_mode((WIDTH, HEIGHT))
     pygame.display.set_caption("Contrôle barre avec flèches")
@@ -73,10 +70,6 @@ if __name__ == "__main__":
             if hasattr(b, 'gameDraw'):
                 b.gameDraw(U.scale, screen)
 
-        # === Affichage du message ===
-        text_surface = font.render("Jouez avec les flèches pour faire bouger la base", True, (0, 0, 0))
-        screen.blit(text_surface, (20, 20))
-
         pygame.display.flip()
         clock.tick(U.gameFPS)
 
@@ -90,7 +83,7 @@ if __name__ == "__main__":
     plt.plot(X, Y, label="Extrémité droite de b2")
     plt.xlabel("Position X")
     plt.ylabel("Position Y")
-    plt.title("Trajectoire de l'extrémité droite de la barre 2")
+    plt.title("Trajectoire de l’extrémité droite de la barre 2")
     plt.grid()
     plt.axis('equal')
     plt.legend()

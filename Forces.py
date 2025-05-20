@@ -383,4 +383,18 @@ class PivotBarre(Force):
 
 
 
-        
+    class ForceCorrecteur(Force):
+        def __init__(self, pendule, base, Kp=1000, Kd=100):
+            super().__init__(V3D(), name="force_correcteur", active=True)
+            self.pendule = pendule
+            self.base = base
+            self.Kp = Kp
+            self.Kd = Kd
+
+        def setForce(self, obj):
+            if obj != self.base:
+                return
+            theta = self.pendule.getAngle()
+            omega = self.pendule.getAngularSpeed()
+            fx = -self.Kp * theta - self.Kd * omega
+            self.base.applyForce(V3D(fx, 0, 0), 0)

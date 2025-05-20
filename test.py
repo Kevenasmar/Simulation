@@ -12,14 +12,12 @@ if __name__ == "__main__":
 
     U = Univers(game=True)
 
-    p1 = Particule(p0=V3D(50,60),fix=True)
-    b1 = Barre(mass = 1, p0=V3D(45,40))
-    # Ajout des entités
-    U.addEntity(p1, b1)
+    b1 = Barre(mass=1, p0= V3D(45,40), fix = True)
+    b2 = Barre(mass=1, p0=V3D(50,40), t0=np.radians(0))
+    U.addEntity(b1, b2)
 
-    # Liaison glissière le long de l'axe horizontal
-    glissiere = GlissiereBarreParticule(b1, p1, axis=V3D(1, 0, 0))
-    force = ForceSelectBarre(V3D(5,0,0),b1,-1)
-    U.addGenerators(glissiere)
+    pivot = PivotBarre(b1,0,b2,-1)
+    U.addGenerators(Gravity(),pivot)
+
 
     U.simulateRealTime()

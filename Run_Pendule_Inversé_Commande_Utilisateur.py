@@ -19,6 +19,7 @@ if __name__ == "__main__":
     # Entités
     p1 = Particule(p0=V3D(50, 60), fix=True)
     b1 = Barre(mass=1, p0=V3D(45, 40))
+    b2 = Barre()
     U.addEntity(p1, b1)
 
     # Liaison glissière

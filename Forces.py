@@ -338,3 +338,49 @@ class Prism(SpringDamper):
             particule.applyForce(-force)
         else:
             pass
+
+class PivotBarre(Force):
+    def __init__(self, b1, point1, b2, point2, k=1000, c=25, name="pivot", active=True):
+        super().__init__(V3D(), name=name, active=active)
+        self.b1 = b1          # Première barre
+        self.p1 = point1      # Position relative sur la première barre [-1, 1]
+        self.b2 = b2          # Deuxième barre
+        self.p2 = point2      # Position relative sur la deuxième barre [-1, 1]
+        self.k = k            # Raideur du ressort
+        self.c = c            # Coefficient d'amortissement
+
+    def setForce(self, obj):
+        if not self.active or (obj != self.b1 and obj != self.b2):
+            return
+
+        # Direction des barres
+        dir1 = V3D(np.cos(self.b1.getAngle()), np.sin(self.b1.getAngle()), 0)
+        dir2 = V3D(np.cos(self.b2.getAngle()), np.sin(self.b2.getAngle()), 0)
+
+        # Positions absolues des points
+        pos1 = self.b1.getPosition() + (self.p1 * self.b1.L / 2) * dir1
+        pos2 = self.b2.getPosition() + (self.p2 * self.b2.L / 2) * dir2
+
+        # Vecteur entre les deux points
+        d = pos2 - pos1
+
+        # Vitesse des points
+        v1 = self.b1.getSpeed() + self.b1.getAngularSpeed() * V3D(-dir1.y, dir1.x, 0) * (self.p1 * self.b1.L / 2)
+        v2 = self.b2.getSpeed() + self.b2.getAngularSpeed() * V3D(-dir2.y, dir2.x, 0) * (self.p2 * self.b2.L / 2)
+
+        # Vitesse relative
+        dv = v2 - v1
+
+        # Force ressort + amortisseur
+        force = self.k * d + self.c * dv
+
+        # Appliquer la force sur les deux barres
+        if obj == self.b1:
+            self.b1.applyForce(force, self.p1)
+        elif obj == self.b2:
+            self.b2.applyForce(-force, self.p2)
+
+
+
+
+        

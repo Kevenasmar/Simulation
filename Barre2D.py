@@ -38,6 +38,9 @@ class Barre:
 
     def getInertia(self):
         return (1 / 12) * self.mass * self.L**2
+    
+    def getPoint(self, alpha):
+        return self.position[-1] + V3D(alpha * self.L / 2, 0).rotZ(self.t0[-1])
 
     def getPosition(self):
         return self.position[-1]

@@ -12,22 +12,23 @@ import math
 
 class Univers(object):
     def __init__(self, name='ici', t0=0, step=0.001, dimensions=(100, 100), game=False, gameDimensions=(1024, 780), fps=60):
-        self.name = name
-        self.time = [t0]
-        self.population = []
-        self.bars = []
-        self.motors = []
-        self.barres = []
-        self.generators = []
-        self.step = step
+        self.name = name                              # Nom de l'univers
+        self.time = [t0]                              # Temps initial
+        self.population = []                          # Liste des particules
+        self.bars = []                                # (Optionnel) Liste alternative de barres
+        self.motors = []                              # Liste des moteurs
+        self.barres = []                              # Liste des barres rigides
+        self.generators = []                          # Liste des forces (générateurs)
+        self.step = step                              # Pas de temps de simulation
 
-        self.dimensions = dimensions
+        self.dimensions = dimensions                  # Dimensions logiques de l'univers
 
-        self.game = game
-        self.gameDimensions = gameDimensions
-        self.gameFPS = fps
+        self.game = game                              # Mode interactif activé ou non
+        self.gameDimensions = gameDimensions          # Taille de la fenêtre Pygame
+        self.gameFPS = fps                            # Nombre d'images par seconde
 
-        self.scale = gameDimensions[0] / dimensions[0]
+        self.scale = gameDimensions[0] / dimensions[0]  # Échelle pixels/unités pour l'affichage
+
     
     def __str__(self):
         return 'Univers (%s,%g,%g)' % (self.name, self.time[0], self.step)
@@ -36,36 +37,38 @@ class Univers(object):
         return str(self)
     
     def addEntity(self, *entity):
-        for e in entity:
-            if isinstance(e, Particule):
-                self.population.append(e)
-            
-            if isinstance(e, MoteurCC):
-                self.motors.append(e)
+        for e in entity:                                   
+            if isinstance(e, Particule):                   # Si c'est une particule
+                self.population.append(e)                  # Ajoute à la liste des particules
 
-            if isinstance(e,Barre):
-                self.barres.append(e)
+            if isinstance(e, MoteurCC):                    # Si c'est un moteur
+                self.motors.append(e)                      # Ajoute à la liste des moteurs
+
+            if isinstance(e, Barre):                       # Si c'est une barre rigide
+                self.barres.append(e)                      # Ajoute à la liste des barres
 
 
     def addGenerators(self, *members):
-        for g in members:
-            self.generators.append(g)
+        for g in members:                   # Parcourt chaque générateur de force passé en argument
+            self.generators.append(g)      # L'ajoute à la liste des générateurs de l'univers
+
 
     def simulateAll(self):
-        for p in self.population:
-            for source in self.generators :
+        for p in self.population:                       # Pour chaque particule de l’univers
+            for source in self.generators:              # Applique toutes les forces disponibles
                 source.setForce(p)
-            p.simulate(self.step)
+            p.simulate(self.step)                       # Met à jour son état (position, vitesse...)
 
-        for m in self.motors : 
-            m.simulate(self.step)
-        
-        for b in self.barres:
-            for source in self.generators:
+        for m in self.motors:                           # Pour chaque moteur
+            m.simulate(self.step)                       # Met à jour son état interne
+
+        for b in self.barres:                           # Pour chaque barre
+            for source in self.generators:              # Applique toutes les forces disponibles
                 source.setForce(b)
-            b.simulate(self.step)
-       
-        self.time.append(self.time[-1]+self.step)
+            b.simulate(self.step)                       # Met à jour son état (position, angle...)
+
+        self.time.append(self.time[-1] + self.step)     # Avance le temps de la simulation
+
 
     def simulateFor(self,duration):
         # On calcule autant de pas que nécessaire pendant duration
@@ -74,18 +77,19 @@ class Univers(object):
             duration -= self.step
         
     def plot(self):
-        from pylab import figure,legend,show
-        
-        figure(self.name)
-        
-        for p in self.population :
-            p.plot()
+        from pylab import figure, legend, show          # Import des fonctions pour les tracés matplotlib
 
-        for b in self.barres : 
-            b.plot()
-            
-        legend()
-        show()
+        figure(self.name)                               # Crée une figure avec le nom de l'univers comme titre
+
+        for p in self.population:                       # Parcourt toutes les particules
+            p.plot()                                    # Trace la trajectoire de la particule
+
+        for b in self.barres:                           # Parcourt toutes les barres
+            b.plot()                                    # Trace la trajectoire de la barre
+
+        legend()                                        # Affiche la légende du graphique
+        show()                                          # Affiche le graphique
+
     
     def gameInteraction(self,events,keys):
         # Fonction qui sera surchargée par le client pour définir ses intéractions
@@ -140,10 +144,6 @@ class Univers(object):
             for b in self.barres : 
                 if hasattr(b,'gameDraw'):
                     b.gameDraw(self.scale,screen)
-
-            # Flip vertically if needed
-            # flip_surface = pygame.transform.flip(screen, False, True)
-            # screen.blit(flip_surface, (0, 0))
 
             # Draw time
             font_obj = pygame.font.Font('freesansbold.ttf', 12)

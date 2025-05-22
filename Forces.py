@@ -329,7 +329,6 @@ class ForceMoteur(Force):
         # Application de la force à la particule
         particule.applyForce(force_moteur)
 
-
 class Pivot(Force):
     """
     Classe représentant une liaison pivot souple entre une barre rigide et un point fixe (une particule).
@@ -338,17 +337,49 @@ class Pivot(Force):
 
     def __init__(self, barre, point_fix, point=0.0, k=1000, c=25, name="pivot", active=True):
         super().__init__(V3D(), name=name, active=active)
+        self.barre = barre
+        self.point_fix = point_fix  # Doit être une Particule
+        self.point = point          # Position normalisée sur la barre [-1, 1]
+        self.k = k
+        self.c = c
 
-        self.barre = barre             # Barre rigide concernée
-        self.point_fix = point_fix     # Particule représentant le point fixe
-        self.point = point             # Position normalisée sur la barre [-1, 1]
-        self.k = k                     # Constante de raideur (N/m)
-        self.c = c                     # Coefficient d’amortissement (kg/s)
-
-        # Calcul de la position initiale du point de la barre
+        # Initialisation de la distance à l'équilibre (l0)
         theta0 = self.barre.getAngle()
         dir_barre = V3D(np.cos(theta0), np.sin(theta0), 0)
-        P0 = self.barre.getPosition() + (self.point * self.barre)
+        P0 = self.barre.getPosition() + (self.point * self.barre.L / 2) * dir_barre
+        self.l0 = (self.point_fix.getPosition() - P0).mod()  # distance initiale
+
+    def setForce(self, obj):
+        if not self.active or obj != self.barre:
+            return
+
+        # Position actuelle du point d'attache
+        pos = self.barre.getPosition()
+        theta = self.barre.getAngle()
+        dir_barre = V3D(np.cos(theta), np.sin(theta), 0)
+        P = pos + (self.point * self.barre.L / 2) * dir_barre
+
+        # Vecteur distance vers la particule fixe
+        delta = self.point_fix.getPosition() - P
+        d = delta.mod()
+        if d == 0:
+            return  # Évite division par 0
+
+        n = delta.norm()  # direction normalisée
+
+        # Vitesse du point
+        r = (self.point * self.barre.L / 2) * dir_barre
+        omega = self.barre.getAngularSpeed()
+        v_translation = self.barre.getSpeed()
+        v_rotation = V3D(-omega * r.y, omega * r.x, 0)
+        v_point = v_translation + v_rotation
+
+    
+        v_proj = v_point ** n
+
+        force = self.k * (d - self.l0) * n - self.c * v_proj * n
+
+        self.barre.applyForce(force, self.point)
 
 
 class SpringDamperBarre(Force):

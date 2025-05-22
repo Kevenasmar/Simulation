@@ -47,4 +47,3 @@ if __name__ == '__main__':
 
     # Simulation
     monUnivers.simulateRealTime()
-    monUnivers.plot()

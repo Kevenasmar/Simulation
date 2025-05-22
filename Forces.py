@@ -329,6 +329,7 @@ class ForceMoteur(Force):
         # Application de la force à la particule
         particule.applyForce(force_moteur)
 
+
 class Pivot(Force):
     """
     Classe représentant une liaison pivot souple entre une barre rigide et un point fixe (une particule).
